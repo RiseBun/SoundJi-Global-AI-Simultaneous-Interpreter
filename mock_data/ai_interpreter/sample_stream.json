@@ -1,0 +1,195 @@
+{
+  "object_type": "SampleStream",
+  "stream_id": "stream_tech_talk_p0_001",
+  "title": "Building a RAG Assistant with a Vector Database",
+  "mode": "technical_talk_mock",
+  "language_pair": {
+    "source": "en",
+    "target": "zh-CN"
+  },
+  "duration_ms": 96000,
+  "sentence_count": 10,
+  "events": [
+    {
+      "object_type": "ASREvent",
+      "event_id": "asr_001_partial",
+      "stream_id": "stream_tech_talk_p0_001",
+      "ts_ms": 0,
+      "sequence": 1,
+      "status": "partial",
+      "text": "Today we are building a RAG"
+    },
+    {
+      "object_type": "ASREvent",
+      "event_id": "asr_001_final",
+      "stream_id": "stream_tech_talk_p0_001",
+      "ts_ms": 4200,
+      "sequence": 1,
+      "status": "final",
+      "text": "Today we are building a RAG assistant for internal documentation."
+    },
+    {
+      "object_type": "ASREvent",
+      "event_id": "asr_002_partial",
+      "stream_id": "stream_tech_talk_p0_001",
+      "ts_ms": 8200,
+      "sequence": 2,
+      "status": "partial",
+      "text": "The API receives a user question"
+    },
+    {
+      "object_type": "ASREvent",
+      "event_id": "asr_002_final",
+      "stream_id": "stream_tech_talk_p0_001",
+      "ts_ms": 11800,
+      "sequence": 2,
+      "status": "final",
+      "text": "The API receives a user question and creates an embedding for retrieval."
+    },
+    {
+      "object_type": "ASREvent",
+      "event_id": "asr_003_partial",
+      "stream_id": "stream_tech_talk_p0_001",
+      "ts_ms": 16000,
+      "sequence": 3,
+      "status": "partial",
+      "text": "We store the vectors in a vector"
+    },
+    {
+      "object_type": "ASREvent",
+      "event_id": "asr_003_final",
+      "stream_id": "stream_tech_talk_p0_001",
+      "ts_ms": 20300,
+      "sequence": 3,
+      "status": "final",
+      "text": "We store the vectors in a vector database so similar documents can be found quickly."
+    },
+    {
+      "object_type": "ASREvent",
+      "event_id": "asr_004_partial",
+      "stream_id": "stream_tech_talk_p0_001",
+      "ts_ms": 24600,
+      "sequence": 4,
+      "status": "partial",
+      "text": "Latency matters because the subtitle"
+    },
+    {
+      "object_type": "ASREvent",
+      "event_id": "asr_004_final",
+      "stream_id": "stream_tech_talk_p0_001",
+      "ts_ms": 29100,
+      "sequence": 4,
+      "status": "final",
+      "text": "Latency matters because the subtitle must stay close to the speaker's pace."
+    },
+    {
+      "object_type": "ASREvent",
+      "event_id": "asr_005_partial",
+      "stream_id": "stream_tech_talk_p0_001",
+      "ts_ms": 33400,
+      "sequence": 5,
+      "status": "partial",
+      "text": "A glossary keeps key terms"
+    },
+    {
+      "object_type": "ASREvent",
+      "event_id": "asr_005_final",
+      "stream_id": "stream_tech_talk_p0_001",
+      "ts_ms": 38100,
+      "sequence": 5,
+      "status": "final",
+      "text": "A glossary keeps key terms such as RAG and embedding translated consistently."
+    },
+    {
+      "object_type": "ASREvent",
+      "event_id": "asr_006_partial",
+      "stream_id": "stream_tech_talk_p0_001",
+      "ts_ms": 42600,
+      "sequence": 6,
+      "status": "partial",
+      "text": "The system marks partial text"
+    },
+    {
+      "object_type": "ASREvent",
+      "event_id": "asr_006_final",
+      "stream_id": "stream_tech_talk_p0_001",
+      "ts_ms": 47000,
+      "sequence": 6,
+      "status": "final",
+      "text": "The system marks partial text as unstable and commits only final segments to the timeline."
+    },
+    {
+      "object_type": "ASREvent",
+      "event_id": "asr_007_partial",
+      "stream_id": "stream_tech_talk_p0_001",
+      "ts_ms": 51400,
+      "sequence": 7,
+      "status": "partial",
+      "text": "If the translation model"
+    },
+    {
+      "object_type": "ASREvent",
+      "event_id": "asr_007_final",
+      "stream_id": "stream_tech_talk_p0_001",
+      "ts_ms": 55800,
+      "sequence": 7,
+      "status": "final",
+      "text": "If the translation model fails, the demo can fall back to a prepared translation."
+    },
+    {
+      "object_type": "ASREvent",
+      "event_id": "asr_008_partial",
+      "stream_id": "stream_tech_talk_p0_001",
+      "ts_ms": 60200,
+      "sequence": 8,
+      "status": "partial",
+      "text": "The review timeline shows"
+    },
+    {
+      "object_type": "ASREvent",
+      "event_id": "asr_008_final",
+      "stream_id": "stream_tech_talk_p0_001",
+      "ts_ms": 64800,
+      "sequence": 8,
+      "status": "final",
+      "text": "The review timeline shows the English sentence, Chinese translation, and matched terms."
+    },
+    {
+      "object_type": "ASREvent",
+      "event_id": "asr_009_partial",
+      "stream_id": "stream_tech_talk_p0_001",
+      "ts_ms": 69600,
+      "sequence": 9,
+      "status": "partial",
+      "text": "At the end we export"
+    },
+    {
+      "object_type": "ASREvent",
+      "event_id": "asr_009_final",
+      "stream_id": "stream_tech_talk_p0_001",
+      "ts_ms": 74200,
+      "sequence": 9,
+      "status": "final",
+      "text": "At the end we export the bilingual transcript as Markdown and JSON."
+    },
+    {
+      "object_type": "ASREvent",
+      "event_id": "asr_010_partial",
+      "stream_id": "stream_tech_talk_p0_001",
+      "ts_ms": 79000,
+      "sequence": 10,
+      "status": "partial",
+      "text": "This mock stream proves"
+    },
+    {
+      "object_type": "ASREvent",
+      "event_id": "asr_010_final",
+      "stream_id": "stream_tech_talk_p0_001",
+      "ts_ms": 84200,
+      "sequence": 10,
+      "status": "final",
+      "text": "This mock stream proves the workflow before we connect any real ASR or meeting platform."
+    }
+  ],
+  "notes": "P0 mock data only. It is not evidence of real ASR, real meeting integration, or production latency."
+}

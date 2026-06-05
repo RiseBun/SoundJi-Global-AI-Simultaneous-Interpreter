@@ -1,0 +1,53 @@
+{
+  "object_type": "FallbackExamples",
+  "fallback_count": 4,
+  "fallback_modes": [
+    {
+      "object_type": "FallbackMode",
+      "mode_id": "fallback_asr_prepared_stream",
+      "reason": "ASR adapter unavailable or unstable",
+      "active": false,
+      "fallback_source": "sample_stream.json events",
+      "visible_notice": "ASR unavailable. Using prepared partial/final event stream for this demo.",
+      "expected_result": "The demo continues with deterministic ASREvent partial/final data."
+    },
+    {
+      "object_type": "FallbackMode",
+      "mode_id": "fallback_translation_prepared_text",
+      "reason": "Translation model timeout or quality risk",
+      "active": false,
+      "fallback_source": "expected_timeline.json translation.target_text",
+      "visible_notice": "Translation adapter unavailable. Using prepared Chinese translations.",
+      "expected_result": "Every final segment still has a Chinese TranslationResult."
+    },
+    {
+      "object_type": "FallbackMode",
+      "mode_id": "fallback_export_copy_text",
+      "reason": "Export writer failed",
+      "active": false,
+      "fallback_source": "timeline view copy buffer",
+      "visible_notice": "Export failed. Copyable bilingual timeline is available on the page.",
+      "expected_result": "User can copy time, English, Chinese, and term-hit fields from the page."
+    },
+    {
+      "object_type": "FallbackMode",
+      "mode_id": "fallback_builtin_glossary",
+      "reason": "User glossary import failed",
+      "active": false,
+      "fallback_source": "term_glossary.json built-in entries",
+      "visible_notice": "Term import failed. Built-in technical glossary is active.",
+      "expected_result": "RAG, API, vector database, embedding, and latency remain controllable."
+    }
+  ],
+  "optional_revision_demo": {
+    "is_demo_only": true,
+    "object_type": "RevisionDemoEvent",
+    "event_id": "revision_demo_001",
+    "source_segment_id": "seg_001",
+    "before": "今天我们要构建一个 RAG 助手。",
+    "after": "今天我们要构建一个检索增强生成助手。",
+    "reason": "The glossary maps RAG to 检索增强生成.",
+    "boundary": "P2 optional demo. It is not part of the P0 real-time auto-revision path."
+  },
+  "notes": "Fallback data is for visible demo continuity and review evidence, not a claim of production resilience."
+}

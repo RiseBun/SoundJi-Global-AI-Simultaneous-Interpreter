@@ -1,0 +1,89 @@
+{
+  "object_type": "TermGlossary",
+  "glossary_id": "glossary_tech_talk_p0_001",
+  "title": "P0 Technical Talk Glossary",
+  "entry_count": 10,
+  "entries": [
+    {
+      "object_type": "TermEntry",
+      "term_id": "term_rag",
+      "source_text": "RAG",
+      "target_text": "检索增强生成",
+      "aliases": ["retrieval augmented generation"],
+      "category": "ai_architecture"
+    },
+    {
+      "object_type": "TermEntry",
+      "term_id": "term_api",
+      "source_text": "API",
+      "target_text": "API",
+      "aliases": ["application programming interface"],
+      "category": "software_interface"
+    },
+    {
+      "object_type": "TermEntry",
+      "term_id": "term_vector_database",
+      "source_text": "vector database",
+      "target_text": "向量数据库",
+      "aliases": ["vector store", "vectors"],
+      "category": "data_infrastructure"
+    },
+    {
+      "object_type": "TermEntry",
+      "term_id": "term_embedding",
+      "source_text": "embedding",
+      "target_text": "嵌入向量",
+      "aliases": ["embeddings"],
+      "category": "ml_representation"
+    },
+    {
+      "object_type": "TermEntry",
+      "term_id": "term_latency",
+      "source_text": "latency",
+      "target_text": "延迟",
+      "aliases": ["response latency"],
+      "category": "system_quality"
+    },
+    {
+      "object_type": "TermEntry",
+      "term_id": "term_glossary",
+      "source_text": "glossary",
+      "target_text": "术语表",
+      "aliases": ["term glossary", "hotword list"],
+      "category": "translation_control"
+    },
+    {
+      "object_type": "TermEntry",
+      "term_id": "term_partial",
+      "source_text": "partial",
+      "target_text": "临时识别结果",
+      "aliases": ["partial text", "unstable text"],
+      "category": "asr_state"
+    },
+    {
+      "object_type": "TermEntry",
+      "term_id": "term_final",
+      "source_text": "final",
+      "target_text": "稳定识别结果",
+      "aliases": ["final segment"],
+      "category": "asr_state"
+    },
+    {
+      "object_type": "TermEntry",
+      "term_id": "term_timeline",
+      "source_text": "timeline",
+      "target_text": "时间轴",
+      "aliases": ["review timeline"],
+      "category": "review_artifact"
+    },
+    {
+      "object_type": "TermEntry",
+      "term_id": "term_markdown",
+      "source_text": "Markdown",
+      "target_text": "Markdown",
+      "aliases": ["md export"],
+      "category": "export_format"
+    }
+  ],
+  "notes": "This glossary is a deterministic P0 fixture. It can be replaced by real user-provided terms after the mock path is stable."
+}

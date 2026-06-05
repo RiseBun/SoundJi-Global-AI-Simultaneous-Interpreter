@@ -1,0 +1,253 @@
+{
+  "artifact_id": "ai-interpreter-mock-transcript",
+  "stream_id": "stream_tech_talk_p0_001",
+  "generated_at": "2026-06-05T15:18:45.857821+00:00",
+  "summary": {
+    "final_count": 10,
+    "glossary_entry_count": 10,
+    "term_hit_count": 13,
+    "fallback_modes": [
+      "fallback_asr_prepared_stream",
+      "fallback_translation_prepared_text",
+      "fallback_export_copy_text",
+      "fallback_builtin_glossary"
+    ],
+    "optional_revision_demo_exists": true
+  },
+  "timeline": [
+    {
+      "start_ms": 0,
+      "end_ms": 4200,
+      "source_text": "Today we are building a RAG assistant for internal documentation.",
+      "target_text": "今天我们要构建一个面向内部文档的检索增强生成助手。",
+      "term_hits": [
+        {
+          "object_type": "TermHit",
+          "hit_id": "hit_001_rag",
+          "term_id": "term_rag",
+          "segment_id": "seg_001",
+          "source_text": "RAG",
+          "target_text": "检索增强生成",
+          "position": {
+            "start": 24,
+            "end": 27
+          }
+        }
+      ]
+    },
+    {
+      "start_ms": 8200,
+      "end_ms": 11800,
+      "source_text": "The API receives a user question and creates an embedding for retrieval.",
+      "target_text": "API 接收用户问题，并为检索创建一个嵌入向量。",
+      "term_hits": [
+        {
+          "object_type": "TermHit",
+          "hit_id": "hit_002_api",
+          "term_id": "term_api",
+          "segment_id": "seg_002",
+          "source_text": "API",
+          "target_text": "API",
+          "position": {
+            "start": 4,
+            "end": 7
+          }
+        },
+        {
+          "object_type": "TermHit",
+          "hit_id": "hit_002_embedding",
+          "term_id": "term_embedding",
+          "segment_id": "seg_002",
+          "source_text": "embedding",
+          "target_text": "嵌入向量",
+          "position": {
+            "start": 44,
+            "end": 53
+          }
+        }
+      ]
+    },
+    {
+      "start_ms": 16000,
+      "end_ms": 20300,
+      "source_text": "We store the vectors in a vector database so similar documents can be found quickly.",
+      "target_text": "我们把向量存入向量数据库，以便快速找到相似文档。",
+      "term_hits": [
+        {
+          "object_type": "TermHit",
+          "hit_id": "hit_003_vector_database",
+          "term_id": "term_vector_database",
+          "segment_id": "seg_003",
+          "source_text": "vector database",
+          "target_text": "向量数据库",
+          "position": {
+            "start": 26,
+            "end": 41
+          }
+        }
+      ]
+    },
+    {
+      "start_ms": 24600,
+      "end_ms": 29100,
+      "source_text": "Latency matters because the subtitle must stay close to the speaker's pace.",
+      "target_text": "延迟很重要，因为字幕必须尽量贴近讲者节奏。",
+      "term_hits": [
+        {
+          "object_type": "TermHit",
+          "hit_id": "hit_004_latency",
+          "term_id": "term_latency",
+          "segment_id": "seg_004",
+          "source_text": "Latency",
+          "target_text": "延迟",
+          "position": {
+            "start": 0,
+            "end": 7
+          }
+        }
+      ]
+    },
+    {
+      "start_ms": 33400,
+      "end_ms": 38100,
+      "source_text": "A glossary keeps key terms such as RAG and embedding translated consistently.",
+      "target_text": "术语表让 RAG 和嵌入向量等关键术语保持一致译法。",
+      "term_hits": [
+        {
+          "object_type": "TermHit",
+          "hit_id": "hit_005_glossary",
+          "term_id": "term_glossary",
+          "segment_id": "seg_005",
+          "source_text": "glossary",
+          "target_text": "术语表",
+          "position": {
+            "start": 2,
+            "end": 10
+          }
+        },
+        {
+          "object_type": "TermHit",
+          "hit_id": "hit_005_rag",
+          "term_id": "term_rag",
+          "segment_id": "seg_005",
+          "source_text": "RAG",
+          "target_text": "检索增强生成",
+          "position": {
+            "start": 35,
+            "end": 38
+          }
+        },
+        {
+          "object_type": "TermHit",
+          "hit_id": "hit_005_embedding",
+          "term_id": "term_embedding",
+          "segment_id": "seg_005",
+          "source_text": "embedding",
+          "target_text": "嵌入向量",
+          "position": {
+            "start": 43,
+            "end": 52
+          }
+        }
+      ]
+    },
+    {
+      "start_ms": 42600,
+      "end_ms": 47000,
+      "source_text": "The system marks partial text as unstable and commits only final segments to the timeline.",
+      "target_text": "系统把临时识别结果标记为不稳定，只把稳定识别结果提交到时间轴。",
+      "term_hits": [
+        {
+          "object_type": "TermHit",
+          "hit_id": "hit_006_partial",
+          "term_id": "term_partial",
+          "segment_id": "seg_006",
+          "source_text": "partial",
+          "target_text": "临时识别结果",
+          "position": {
+            "start": 17,
+            "end": 24
+          }
+        },
+        {
+          "object_type": "TermHit",
+          "hit_id": "hit_006_final",
+          "term_id": "term_final",
+          "segment_id": "seg_006",
+          "source_text": "final",
+          "target_text": "稳定识别结果",
+          "position": {
+            "start": 61,
+            "end": 66
+          }
+        },
+        {
+          "object_type": "TermHit",
+          "hit_id": "hit_006_timeline",
+          "term_id": "term_timeline",
+          "segment_id": "seg_006",
+          "source_text": "timeline",
+          "target_text": "时间轴",
+          "position": {
+            "start": 83,
+            "end": 91
+          }
+        }
+      ]
+    },
+    {
+      "start_ms": 51400,
+      "end_ms": 55800,
+      "source_text": "If the translation model fails, the demo can fall back to a prepared translation.",
+      "target_text": "如果翻译模型失败，演示可以降级使用预置译文。",
+      "term_hits": []
+    },
+    {
+      "start_ms": 60200,
+      "end_ms": 64800,
+      "source_text": "The review timeline shows the English sentence, Chinese translation, and matched terms.",
+      "target_text": "复盘时间轴展示英文句子、中文翻译和命中的术语。",
+      "term_hits": [
+        {
+          "object_type": "TermHit",
+          "hit_id": "hit_008_timeline",
+          "term_id": "term_timeline",
+          "segment_id": "seg_008",
+          "source_text": "timeline",
+          "target_text": "时间轴",
+          "position": {
+            "start": 11,
+            "end": 19
+          }
+        }
+      ]
+    },
+    {
+      "start_ms": 69600,
+      "end_ms": 74200,
+      "source_text": "At the end we export the bilingual transcript as Markdown and JSON.",
+      "target_text": "最后我们把双语 transcript 导出为 Markdown 和 JSON。",
+      "term_hits": [
+        {
+          "object_type": "TermHit",
+          "hit_id": "hit_009_markdown",
+          "term_id": "term_markdown",
+          "segment_id": "seg_009",
+          "source_text": "Markdown",
+          "target_text": "Markdown",
+          "position": {
+            "start": 55,
+            "end": 63
+          }
+        }
+      ]
+    },
+    {
+      "start_ms": 79000,
+      "end_ms": 84200,
+      "source_text": "This mock stream proves the workflow before we connect any real ASR or meeting platform.",
+      "target_text": "这条 mock 流用于先证明工作流，再接入真实 ASR 或会议平台。",
+      "term_hits": []
+    }
+  ]
+}
