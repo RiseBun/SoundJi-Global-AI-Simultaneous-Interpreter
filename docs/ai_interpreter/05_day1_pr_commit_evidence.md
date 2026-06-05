@@ -1,4 +1,4 @@
-# AI 同声传译助手 Day 1 PR/Commit 证据记录
+# 声济 AI 同声传译助手 Day 1 PR/Commit 证据记录
 
 ## 1. 记录目的
 
@@ -16,7 +16,7 @@
 | 成员 | 分工 | 证据 |
 |---|---|---|
 | RiseBun / 仓库创建者 | 创建 GitHub 仓库、提供协作入口、后续负责合并 PR 和主分支维护 | GitHub 仓库地址 |
-| 我 / 仓库合作者 | 梳理研究基线、技术文档分类、P0 mock 数据、校验脚本、mock runner、transcript 输出和 PR/commit 证据 | 当前分支新增文件 |
+| KingArthur040415 / 仓库合作者 | 梳理研究基线、技术文档分类、P0 mock 数据、校验脚本、mock runner、transcript 输出和 PR/commit 证据 | 当前分支新增文件 |
 | 后续共同任务 | 审查并合并 Day 1 PR，继续拆 P1 adapter 和 demo polish | 后续 PR |
 
 ## 3. Day 1 PR 标题

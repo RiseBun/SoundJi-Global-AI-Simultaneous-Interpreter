@@ -1,8 +1,8 @@
-# SoundJi - Global AI Simultaneous Interpreter
+# 声济 SoundJi - Global AI Simultaneous Interpreter
 
 ## 项目简介
 
-SoundJi 是一个面向技术分享、网课和跨语言会议场景的 AI 同声传译助手。Day 1 版本先交付 P0 mock proof chain，用于证明“术语可控、状态可追踪、证据可复盘”的最小工程闭环。
+声济 SoundJi 是一个面向技术分享、网课和跨语言会议场景的 AI 同声传译助手。Day 1 版本先交付 P0 mock proof chain，用于证明“术语可控、状态可追踪、证据可复盘”的最小工程闭环。
 
 当前版本不是生产级同传应用，不接真实 ASR、真实 LLM/翻译模型或真实会议平台。它先用可复现的 mock 数据、校验脚本、runner 和 transcript 证明核心链路。
 
@@ -26,12 +26,12 @@ SampleStream
 
 ## Day 1 分工记录
 
-当前仓库由队友 `RiseBun` 创建并维护，我以仓库合作者身份在功能分支 `feature/day1-evidence-package` 合入 Day 1 工程证据包。
+当前仓库由队友 `RiseBun` 创建并维护，`KingArthur040415` 以仓库合作者身份在功能分支 `feature/day1-evidence-package` 合入 Day 1 工程证据包。
 
 | 成员 | Day 1 分工 | 当前证据 |
 |---|---|---|
 | RiseBun / 仓库创建者 | 创建 GitHub 仓库、提供协作入口、后续负责合并 PR 和主分支维护 | GitHub 仓库 `RiseBun/SoundJi-Global-AI-Simultaneous-Interpreter` |
-| 我 / 仓库合作者 | 梳理赛题与 XEngineer/ZGC 方法论，生成技术文档分类、P0 mock 数据、校验脚本、mock runner、transcript 输出和 PR/commit 证据文档 | `README.md`、`docs/ai_interpreter/*.md`、`mock_data/ai_interpreter/*.json`、`scripts/*.py`、`outputs/ai_interpreter/*` |
+| KingArthur040415 / 仓库合作者 | 梳理赛题与 XEngineer/ZGC 方法论，生成技术文档分类、P0 mock 数据、校验脚本、mock runner、transcript 输出和 PR/commit 证据文档 | `README.md`、`docs/ai_interpreter/*.md`、`mock_data/ai_interpreter/*.json`、`scripts/*.py`、`outputs/ai_interpreter/*` |
 | 后续共同任务 | 在 PR 中审查 Day 1 证据包，确认主分支合并后仍可运行，再拆 P1 adapter 和 demo polish | `docs/ai_interpreter/05_day1_pr_commit_evidence.md` |
 
 ## 核心功能
