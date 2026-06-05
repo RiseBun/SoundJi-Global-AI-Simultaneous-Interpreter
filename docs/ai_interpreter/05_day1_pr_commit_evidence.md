@@ -1,4 +1,4 @@
-# AI 同声传译助手 Day 1 PR/Commit 证据记录
+# 声济 AI 同声传译助手 Day 1 PR/Commit 证据记录
 
 ## 1. 记录目的
 

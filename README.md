@@ -1,8 +1,8 @@
-# SoundJi - Global AI Simultaneous Interpreter
+# 声济 SoundJi - Global AI Simultaneous Interpreter
 
 ## 项目简介
 
-SoundJi 是一个面向技术分享、网课和跨语言会议场景的 AI 同声传译助手。Day 1 版本先交付 P0 mock proof chain，用于证明“术语可控、状态可追踪、证据可复盘”的最小工程闭环。
+声济 SoundJi 是一个面向技术分享、网课和跨语言会议场景的 AI 同声传译助手。Day 1 版本先交付 P0 mock proof chain，用于证明“术语可控、状态可追踪、证据可复盘”的最小工程闭环。
 
 当前版本不是生产级同传应用，不接真实 ASR、真实 LLM/翻译模型或真实会议平台。它先用可复现的 mock 数据、校验脚本、runner 和 transcript 证明核心链路。
 
