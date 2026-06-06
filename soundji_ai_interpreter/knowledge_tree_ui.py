@@ -124,6 +124,7 @@ def build_living_text_tree_html(model: KnowledgeTreeRenderModel) -> str:
     .branch-label {{ font-size: 12px; font-weight: 700; }}
     .leaf-label {{ font-size: 11px; fill: #cfe7ff; }}
     .toggle-label {{ font-size: 11px; fill: #9fd1ff; cursor: pointer; }}
+    .branch-label, .leaf-label, .root-label {{ pointer-events: none; }}
     .root-label {{ font-size: 12px; fill: #eaf6ff; font-weight: 700; }}
     .seed-dot, .leaf-dot {{ fill: #f8fbff; }}
     .collapsed .leaf-group {{ display: none; }}
@@ -171,8 +172,8 @@ def build_living_text_tree_html(model: KnowledgeTreeRenderModel) -> str:
         html += `<g class="${{isCollapsed ? "collapsed" : ""}}" data-branch-id="${{esc(branch.node_id)}}">`;
         html += `<path class="branch-line" d="M 42 ${{y}} C 90 ${{y - 18}}, ${{branchX - 34}} ${{y - 22}}, ${{branchX}} ${{y - 34}}" />`;
         html += `<circle class="seed-dot" cx="${{branchX}}" cy="${{y - 34}}" r="4" />`;
-        html += `<text class="toggle-label" data-toggle-id="${{esc(branch.node_id)}}" x="${{Math.max(96, branchX - 22)}}" y="${{y - 43}}">${{isCollapsed ? "[+]" : "[-]"}}</text>`;
-        html += textBlock(52, y - 48, branch.title, "branch-label", labelChars);
+        html += `<text class="toggle-label" data-toggle-id="${{esc(branch.node_id)}}" x="${{Math.max(112, branchX + 8)}}" y="${{y - 43}}">${{isCollapsed ? "[+]" : "[-]"}}</text>`;
+        html += textBlock(52, y - 48, branch.title, "branch-label", Math.max(7, labelChars - 4));
         activeUpdates.forEach((update, childIndex) => {{
           const leafY = y - 80 - childIndex * 42;
           const leafX = Math.max(110, branchX - 18 - childIndex * 8);
@@ -246,4 +247,3 @@ def _model_payload_json(model: KnowledgeTreeRenderModel) -> str:
         },
         ensure_ascii=False,
     )
-
