@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SoundJi Living Text Tree</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: #05070b; color: #f8fbff; font-family: Arial, "Microsoft YaHei UI", sans-serif; overflow: hidden; }
+    .stage { position: relative; width: 100vw; height: 100vh; background: linear-gradient(90deg, #020308 0 15%, #111827 15% 85%, #020308 85% 100%); }
+    .video { position: absolute; left: 15%; right: 15%; top: 0; bottom: 0; display: grid; place-items: center; color: rgba(255,255,255,.42); border-left: 1px solid rgba(255,255,255,.08); border-right: 1px solid rgba(255,255,255,.08); text-align: center; }
+    .living-tree { position: absolute; left: 10px; bottom: 72px; width: calc(15vw - 16px); min-width: 150px; max-width: 600px; height: 78vh; border-right: 1px solid rgba(180,220,255,.68); cursor: grab; overflow: hidden; background: transparent; }
+    .resize-handle { position: absolute; top: 0; right: -5px; width: 10px; height: 100%; cursor: ew-resize; z-index: 2; }
+    .resize-handle::after { content: ""; position: absolute; top: 0; bottom: 0; left: 4px; width: 1px; background: rgba(180,220,255,.8); }
+    svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 2px 8px rgba(0,0,0,.95)); }
+    .trunk, .branch-line, .twig-line { fill: none; stroke: rgba(230,244,255,.78); stroke-width: 2.5; stroke-linecap: round; }
+    .twig-line { stroke-width: 1.5; }
+    .branch-label, .leaf-label, .toggle-label, .root-label { fill: #f8fbff; font-family: Consolas, "Cascadia Mono", monospace; }
+    .branch-label { font-size: 12px; font-weight: 700; }
+    .leaf-label { font-size: 11px; fill: #cfe7ff; }
+    .toggle-label { font-size: 11px; fill: #9fd1ff; cursor: pointer; }
+    .branch-label, .leaf-label, .root-label { pointer-events: none; }
+    .root-label { font-size: 12px; fill: #eaf6ff; font-weight: 700; }
+    .seed-dot, .leaf-dot { fill: #f8fbff; }
+    .collapsed .leaf-group { display: none; }
+    .subtitle { position: absolute; left: 20%; right: 20%; bottom: 44px; background: rgba(0,0,0,.48); border: 1px solid rgba(255,255,255,.14); padding: 12px 18px; text-align: center; }
+    .controls { position: absolute; left: 24px; bottom: 24px; display: flex; gap: 8px; padding: 10px; background: rgba(5,7,11,.76); border: 1px solid rgba(255,255,255,.14); border-radius: 6px; }
+    button { border: 1px solid rgba(255,255,255,.2); background: #111827; color: #f8fbff; border-radius: 6px; padding: 8px 10px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <section class="video"><div><div style="font-size:26px">FULLSCREEN COURSE VIDEO</div><div>左侧黑框承载 living_text_tree</div></div></section>
+    <aside class="living-tree" id="treePanel" data-anchor="left_black_bar" data-origin="video_left_bottom">
+      <svg id="treeSvg" viewBox="0 0 260 840" preserveAspectRatio="xMinYMax meet"></svg>
+      <div class="resize-handle" id="resizeHandle" title="resize"></div>
+    </aside>
+    <div class="subtitle" id="subtitle">准备阶段：完整大标题枝干已经出现</div>
+    <nav class="controls"><button id="resetBtn" type="button">Reset</button><button id="nextBtn" type="button">Next</button></nav>
+  </main>
+  <script>
+    const data = {"root_title": "Building a RAG Assistant with a Vector Database", "updates": ["ktu_001_goal", "ktu_002_embedding", "ktu_003_vector_db", "ktu_004_latency", "ktu_005_glossary", "ktu_006_partial_final", "ktu_007_translation_fallback", "ktu_008_review_timeline", "ktu_009_export", "ktu_010_proof_boundary"], "updateTitles": ["RAG 助手服务内部文档问答", "API 接收问题并创建 embedding", "Vector database 支持相似文档快速检索", "Latency 决定字幕是否跟得上讲者节奏", "Glossary 保证 RAG / embedding 等术语译法一致", "partial 临时显示，final 才进入时间轴", "翻译失败时使用 prepared translation 降级", "Review timeline 同时保存英文、中文和命中术语", "导出 Markdown / JSON 作为可交接 artifact", "先证明 workflow，再接真实 ASR 或会议平台"], "branches": [{"node_id": "branch_goal", "title": "1. 课程目标与产品边界", "updates": [{"update_id": "ktu_001_goal", "title": "RAG 助手服务内部文档问答"}, {"update_id": "ktu_010_proof_boundary", "title": "先证明 workflow，再接真实 ASR 或会议平台"}]}, {"node_id": "branch_retrieval", "title": "2. 检索链路：API -> Embedding -> Vector Database", "updates": [{"update_id": "ktu_002_embedding", "title": "API 接收问题并创建 embedding"}, {"update_id": "ktu_003_vector_db", "title": "Vector database 支持相似文档快速检索"}]}, {"node_id": "branch_realtime", "title": "3. 实时字幕体验：Latency 与 partial/final", "updates": [{"update_id": "ktu_004_latency", "title": "Latency 决定字幕是否跟得上讲者节奏"}, {"update_id": "ktu_006_partial_final", "title": "partial 临时显示，final 才进入时间轴"}]}, {"node_id": "branch_terms_fallback", "title": "4. 术语控制与降级机制", "updates": [{"update_id": "ktu_005_glossary", "title": "Glossary 保证 RAG / embedding 等术语译法一致"}, {"update_id": "ktu_007_translation_fallback", "title": "翻译失败时使用 prepared translation 降级"}]}, {"node_id": "branch_review", "title": "5. 复盘交付：Timeline / Markdown / JSON", "updates": [{"update_id": "ktu_008_review_timeline", "title": "Review timeline 同时保存英文、中文和命中术语"}, {"update_id": "ktu_009_export", "title": "导出 Markdown / JSON 作为可交接 artifact"}]}]};
+    let step = 0;
+    const collapsed = new Set();
+    const panel = document.getElementById("treePanel");
+    const svg = document.getElementById("treeSvg");
+    const subtitle = document.getElementById("subtitle");
+    function esc(value) { return String(value || "").replace(/[&<>]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[ch])); }
+    function textBlock(x, y, value, cls, maxChars) {
+      const raw = String(value || "");
+      const lines = [];
+      for (let i = 0; i < raw.length; i += maxChars) lines.push(raw.slice(i, i + maxChars));
+      return `<text class="${cls}" x="${x}" y="${y}">${lines.map((line, idx) => `<tspan x="${x}" dy="${idx === 0 ? 0 : 13}">${esc(line)}</tspan>`).join("")}</text>`;
+    }
+    function render() {
+      const panelWidth = Math.max(150, panel.getBoundingClientRect().width || 150);
+      const widthRatio = Math.min(1, Math.max(0, (panelWidth - 150) / 450));
+      const branchX = 150 + widthRatio * 70;
+      const labelChars = Math.max(8, Math.min(34, Math.floor(panelWidth / 10)));
+      const leafChars = Math.max(8, Math.min(30, Math.floor(panelWidth / 11)));
+      let html = `<path class="trunk" d="M 38 780 C 26 620, 54 310, 42 40" />`;
+      html += textBlock(52, 812, data.root_title, "root-label", labelChars);
+      data.branches.forEach((branch, index) => {
+        const y = 700 - index * 126;
+        const activeUpdates = branch.updates.filter(update => data.updates.slice(0, step).includes(update.update_id));
+        const isCollapsed = collapsed.has(branch.node_id);
+        html += `<g class="${isCollapsed ? "collapsed" : ""}" data-branch-id="${esc(branch.node_id)}">`;
+        html += `<path class="branch-line" d="M 42 ${y} C 90 ${y - 18}, ${branchX - 34} ${y - 22}, ${branchX} ${y - 34}" />`;
+        html += `<circle class="seed-dot" cx="${branchX}" cy="${y - 34}" r="4" />`;
+        html += `<text class="toggle-label" data-toggle-id="${esc(branch.node_id)}" x="${Math.max(112, branchX + 8)}" y="${y - 43}">${isCollapsed ? "[+]" : "[-]"}</text>`;
+        html += textBlock(52, y - 48, branch.title, "branch-label", Math.max(7, labelChars - 4));
+        activeUpdates.forEach((update, childIndex) => {
+          const leafY = y - 80 - childIndex * 42;
+          const leafX = Math.max(110, branchX - 18 - childIndex * 8);
+          html += `<g class="leaf-group">`;
+          html += `<path class="twig-line" d="M ${branchX} ${y - 34} C ${branchX - 12} ${y - 54}, ${leafX + 20} ${leafY}, ${leafX} ${leafY}" />`;
+          html += `<circle class="leaf-dot" cx="${leafX}" cy="${leafY}" r="3.8" />`;
+          html += textBlock(54, leafY - 8, update.title, "leaf-label", leafChars);
+          html += `</g>`;
+        });
+        html += `</g>`;
+      });
+      svg.innerHTML = html;
+      subtitle.textContent = step === 0 ? "准备阶段：完整大标题枝干已经出现" : `知识树更新：${data.updateTitles[step - 1]}`;
+      svg.querySelectorAll("[data-toggle-id]").forEach(node => node.addEventListener("click", event => {
+        const id = node.getAttribute("data-toggle-id");
+        if (collapsed.has(id)) collapsed.delete(id); else collapsed.add(id);
+        event.stopPropagation();
+        render();
+      }));
+    }
+    document.getElementById("nextBtn").onclick = () => { step = Math.min(data.updates.length, step + 1); render(); };
+    document.getElementById("resetBtn").onclick = () => { step = 0; collapsed.clear(); render(); };
+    let dragging = false, resizing = false, dx = 0, dy = 0;
+    const handle = document.getElementById("resizeHandle");
+    handle.addEventListener("mousedown", event => { resizing = true; event.preventDefault(); event.stopPropagation(); });
+    panel.addEventListener("mousedown", event => { if (event.target === handle) return; dragging = true; const rect = panel.getBoundingClientRect(); dx = event.clientX - rect.left; dy = event.clientY - rect.top; });
+    window.addEventListener("mousemove", event => {
+      if (resizing) { const rect = panel.getBoundingClientRect(); panel.style.width = `${Math.max(150, Math.min(600, event.clientX - rect.left))}px`; render(); return; }
+      if (dragging) { panel.style.left = `${event.clientX - dx}px`; panel.style.top = `${event.clientY - dy}px`; panel.style.bottom = "auto"; }
+    });
+    window.addEventListener("mouseup", () => { dragging = false; resizing = false; });
+    render();
+  </script>
+</body>
+</html>

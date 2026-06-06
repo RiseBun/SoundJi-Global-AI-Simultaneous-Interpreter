@@ -31,7 +31,7 @@ SampleStream
 
 P2 optional 只允许存在一个 `RevisionDemoEvent`，用于展示伪数据回修方向。它不是实时自动回修系统，也不能阻塞 P0 演示。
 
-知识树能力当前定位为 P1 contract / P2 智能生成候选：准备阶段生成大标题树，播放过程中根据 final 句段逐步补充小标题、核心观点和关键原句。若 P0 资源不足，先使用 mock 数据和 schema，不进入 runner 主链路。
+知识树能力当前定位为 P1 contract / P2 智能生成候选：准备阶段生成大标题树，播放过程中根据 final 句段逐步补充小标题；数据层保留核心观点、关键原句和时间轴引用。若 P0 资源不足，先使用 mock 数据和 schema，不进入 runner 主链路。
 
 ### 1.1 对象关系图
 
@@ -70,10 +70,11 @@ Evidence quote: 关键英文原句
 Timeline ref: 对应字幕时间段
 ```
 
-两种展示模式：
+三种展示模式：
 
 - `architecture_graph`：类似架构图，展示 Root、Branch、Subtopic 的结构关系。
-- `growing_code_tree`：类似代码目录树，准备阶段只有 Root 和 Branch，播放过程中逐步向下长出 Subtopic、Core point、Evidence quote 和 Timeline ref。
+- `growing_code_tree`：类似代码目录树，准备阶段只有 Root 和 Branch，播放过程中逐步向下长出当前 Subtopic。视觉层不直接显示 Core point、Evidence quote 和 Timeline ref，避免学习时信息过密。
+- `living_text_tree`：真树形文字树，主干自下而上生长，Branch 文字贴近枝干，`[+]`/`[-]` 位于枝干末梢圆点附近。
 
 浮动桌面视图 contract：
 
@@ -82,13 +83,49 @@ FloatingKnowledgeTreeView
   -> transparent background
   -> white monospace text
   -> draggable
-  -> default_anchor: right_black_bar
-  -> alternate_anchor: left_black_bar
-  -> growth_direction: vertical_down
-  -> collapse_strategy: collapse_old_core_points_first
+  -> resizable_width
+  -> resize_handle: right_border
+  -> default_anchor: left_black_bar
+  -> alternate_anchor: right_black_bar
+  -> list_tree_default_origin: video_left_top
+  -> living_tree_default_origin: video_left_bottom
+  -> growth_direction: vertical_bottom_up for living tree
+  -> collapse_strategy: auto_collapse_previous_branch_only
+  -> display_density: title_core_only
 ```
 
 黑框承载假设：当视频全屏后左右出现图幅比例不匹配产生的黑框，浮动白字知识树优先占据黑框区域，避免遮挡视频主体内容。
+
+显示层和数据层边界：
+
+| 层级 | 数据层是否保留 | 浮动视图是否默认显示 | 说明 |
+|---|---:|---:|---|
+| Root | 是 | 是 | 课程主题，可作为底座或根节点。 |
+| Branch | 是 | 是 | 一级大标题，准备阶段直接生成完整分类。 |
+| Subtopic | 是 | 是 | 二级小标题，随 final 进度逐步补充。 |
+| Core point | 是 | 默认不显示 | 用于导出和复盘，避免浮层过密。 |
+| Evidence quote | 是 | 默认不显示 | 用于证据追溯，不直接挤进黑边浮层。 |
+| Timeline ref | 是 | 默认不显示 | 导出保留；浮层不显示时间戳。 |
+
+列表树视觉规则：
+
+```text
+├─ Root/
+├─ 1. 课程目标与产品边界/
+├─ 2. 检索链路：API -> Embedding -> Vector Database/
+├─ 3. 实时字幕体验：Latency 与 partial/final/
+│  └─ Latency 决定字幕是否跟得上讲者节奏/
+├─ 4. 术语控制与降级机制/
+└─ 5. 复盘交付：Timeline / Markdown / JSON/
+```
+
+真树视觉规则：
+
+- Root 作为底部土壤/底座文字。
+- Branch 是主干上的一级枝干。
+- Subtopic 是当前枝干附近长出的叶节点。
+- `[+]`/`[-]` 位于枝干末梢圆点附近，随面板宽度变化而移动。
+- 面板拉宽时，枝干长度变长，文字可用宽度增加；面板缩窄时，所有文字在边界内自动换行。
 
 ## 2. 最小数据对象契约
 
@@ -104,7 +141,7 @@ FloatingKnowledgeTreeView
 | `KnowledgeTree` | 表示课程系统知识树 | `tree_id`, `root_title`, `phase`, `nodes`, `source_refs`, `status` | Knowledge Tree Builder | Demo UI, Exporter | `D2_KNOWLEDGE_TREE_DRAFT_READY` |
 | `KnowledgeNode` | 表示知识树节点 | `node_id`, `parent_id`, `level`, `title`, `core_points`, `source_quotes`, `timeline_refs` | Knowledge Tree Builder | Demo UI, Exporter | `D2_KNOWLEDGE_TREE_INCREMENTAL_UPDATE` |
 | `KnowledgeTreeUpdate` | 表示一次增量补全 | `update_id`, `tree_id`, `segment_id`, `operation`, `node_id`, `reason`, `is_model_generated` | Knowledge Tree Builder | Demo UI, Trace / Exporter | `D2_KNOWLEDGE_TREE_SOURCE_LINKED` |
-| `FloatingKnowledgeTreeView` | 表示桌面浮动知识树视图 | `view_id`, `display_modes`, `desktop_behavior`, `default_anchor`, `growth_direction` | Demo UI / Overlay | Demo UI, Exporter | `D2_FLOATING_TREE_VIEW_READY` |
+| `FloatingKnowledgeTreeView` | 表示桌面浮动知识树视图 | `view_id`, `display_modes`, `desktop_behavior`, `default_anchor`, `default_origin`, `growth_direction`, `resizable_width`, `resize_handle`, `display_density` | Demo UI / Overlay | Demo UI, Exporter | `D2_FLOATING_TREE_VIEW_READY` |
 | `ExportArtifact` | 表示导出结果 | `artifact_id`, `format`, `content`, `status`, `created_at` | Exporter | Demo UI, Fallback Controller | `D2_EXPORT_MARKDOWN_JSON` |
 | `FallbackMode` | 表示降级模式 | `mode_id`, `reason`, `active`, `fallback_source`, `visible_notice` | Fallback Controller | Demo UI, ASR Event Adapter, Translation Adapter, Exporter | `D3_FALLBACK_DEMO_READY` |
 | `RevisionDemoEvent` | P2 optional，仅表示伪数据回修演示 | `revision_id`, `segment_id`, `before_text`, `after_text`, `reason`, `is_demo_only` | P2 Revision Demo | Demo UI, Exporter | `D3_P2_REVISION_DEMO_OPTIONAL` |
@@ -128,7 +165,8 @@ FloatingKnowledgeTreeView
 | `knowledge_node_quote_attached` | 为知识节点绑定关键原句和时间轴引用 | P1 |
 | `knowledge_tree_fallback_used` | 知识树生成失败，保留时间轴和 transcript | P1 |
 | `floating_tree_dragged` | 用户拖动浮动知识树位置 | P1 |
-| `floating_tree_collapsed` | 知识树过高时折叠旧核心观点 | P1 |
+| `floating_tree_resized` | 用户拖动右侧边框调整浮动树宽度 | P1 |
+| `floating_tree_collapsed` | 知识树过高时折叠前一个一级大标题分支 | P1 |
 | `export_requested` | 用户触发导出 | P0 |
 | `export_generated` | Markdown/JSON 生成 | P0 |
 | `export_fallback_copy_ready` | 文件导出失败，提供可复制文本 | P0 |
@@ -172,7 +210,7 @@ stateDiagram-v2
 | 导出 | `not_started -> generated -> fallback_copy` | generated 输出 Markdown/JSON；失败时显示可复制文本。 |
 | 术语 | `loaded -> hit_detected -> rendered` | 术语表加载后，命中可高亮或标注。 |
 | 知识树 | `seeded -> node_added -> quote_attached -> exported` | 每个节点必须能追溯到 final 句段或关键原句。 |
-| 浮动树视图 | `anchored -> dragged -> growing -> collapsed` | 默认在视频黑框区域显示，拖动不影响主链路；树过高时保留标题层级。 |
+| 浮动树视图 | `anchored -> dragged -> resized -> growing -> collapsed` | 默认在视频黑框区域显示，拖动和拉宽不影响主链路；树过高时保留标题层级。 |
 | 降级 | `inactive -> active -> visible_notice` | 降级必须在 UI 可见，不隐藏 mock 边界。 |
 | P2 回修 | `not_used -> demo_triggered` | 只在 Day 3 可选演示，不进主链路。 |
 
@@ -263,6 +301,7 @@ sequenceDiagram
 | 时间轴 | 内存状态 | 数据库/文件存储 | `TimelineItem` 字段不变 |
 | 导出 | Markdown/JSON 文本 | 多格式导出 | `ExportArtifact` 结构不变 |
 | 知识树 | Mock JSON 样例 | LLM 生成骨架+增量节点 | `KnowledgeNode{type,content,source_segment}` |
+| 浮动树视图 | HTML mock overlay | 桌面悬浮窗或 Web overlay | `FloatingKnowledgeTreeView{anchor,draggable,resizable_width,display_mode}` |
 | 回修 | P2 伪数据 | — | 不进 P0 主链路 |
 
 ## 5. 验收样例清单
@@ -281,7 +320,7 @@ sequenceDiagram
 | `D2_KNOWLEDGE_TREE_DRAFT_READY` | Day 2/P1 | 准备阶段生成大标题树骨架。 |
 | `D2_KNOWLEDGE_TREE_INCREMENTAL_UPDATE` | Day 2/P1 | 随 final 字幕逐步补充小标题和核心观点。 |
 | `D2_KNOWLEDGE_TREE_SOURCE_LINKED` | Day 2/P1 | 每个知识节点包含关键原句和时间轴引用。 |
-| `D2_FLOATING_TREE_VIEW_READY` | Day 2/P1 | 知识树同时具备架构图和类代码生长树两种展示，且可作为桌面浮动白字树。 |
+| `D2_FLOATING_TREE_VIEW_READY` | Day 2/P1 | 知识树具备架构图、连续主干代码树和真树文字树展示，且可作为桌面浮动白字树。 |
 | `D2_EXPORT_MARKDOWN_JSON` | Day 2 | 可导出 Markdown/JSON，或提供可复制文本。 |
 | `D3_FALLBACK_DEMO_READY` | Day 3 | ASR/翻译/导出失败时能切换预置数据并显示降级说明。 |
 | `D3_DEMO_SCRIPT_RUNTHROUGH` | Day 3 | 3 分钟内跑完从输入到导出的演示主路径。 |
@@ -303,7 +342,7 @@ sequenceDiagram
 | `D2_KNOWLEDGE_TREE_DRAFT_READY` | 课程主题、术语表、样例标题 | 准备阶段生成树 | `KnowledgeTree` 至少有 root 和 3 个大标题分支 | 生成失败 -> 使用预置知识树骨架 | `KnowledgeTree`, `knowledge_tree_seeded` | P1 |
 | `D2_KNOWLEDGE_TREE_INCREMENTAL_UPDATE` | final 字幕、译文、术语命中 | 播放过程中处理 final | 给对应大标题添加小标题或核心观点 | 更新失败 -> 回退到 timeline，不阻塞字幕 | `KnowledgeNode`, `KnowledgeTreeUpdate`, `knowledge_node_added` | P1 |
 | `D2_KNOWLEDGE_TREE_SOURCE_LINKED` | final 字幕和时间轴 | 查看知识树节点 | 每个新增节点至少包含 1 条关键原句和时间轴引用 | 低置信节点标记待确认 | `KnowledgeNode`, `knowledge_node_quote_attached` | P1 |
-| `D2_FLOATING_TREE_VIEW_READY` | `KnowledgeTree` 和 `display_contract` | 查看 transcript 或 demo overlay | 输出 `architecture_graph` 与 `growing_code_tree`；桌面行为包含 floating、draggable、right/left black bar anchor、white monospace text | 无桌面 overlay 时导出 Markdown 文本树 | `FloatingKnowledgeTreeView`, `floating_tree_dragged`, `floating_tree_collapsed` | P1 |
+| `D2_FLOATING_TREE_VIEW_READY` | `KnowledgeTree` 和 `display_contract` | 查看 transcript 或 demo overlay | 输出 `architecture_graph`、`growing_code_tree`、`living_text_tree`；桌面行为包含 floating、draggable、resizable_width、left/right black bar anchor、white monospace text | 无桌面 overlay 时导出 Markdown 文本树 | `FloatingKnowledgeTreeView`, `floating_tree_dragged`, `floating_tree_resized`, `floating_tree_collapsed` | P1 |
 | `D2_EXPORT_MARKDOWN_JSON` | 双语时间轴 | 点击导出 | 生成 Markdown 或 JSON `ExportArtifact` | 导出失败 -> 页面可复制文本 | `ExportArtifact`, `export_requested`, `export_generated`, `export_fallback_copy_ready` | P0 |
 | `D3_FALLBACK_DEMO_READY` | 模拟 ASR/翻译/导出失败 | 切换或触发 fallback | UI 显示降级原因并继续 demo | 全程使用预置事件流和预置译文 | `FallbackMode`, `fallback_mode_activated` | P0 |
 | `D3_DEMO_SCRIPT_RUNTHROUGH` | 完整样例、术语表、预置降级 | 按 8 步脚本演示 | 3 分钟内从加载术语到导出跑通 | 缩短为 5 步，仅展示 P0 | `SampleStream`, `TimelineItem`, `ExportArtifact` | P0 |
@@ -406,7 +445,7 @@ P1/P2 砍掉规则：
 | P1 partial/final 视觉优化 | Day 1 P0 事件流稳定后 | 影响主链路展示就砍。 |
 | P1 术语命中统计 | Day 2 导出稳定后 | 需要大改数据结构就砍。 |
 | P1 知识树骨架和增量节点 | Day 2 P0 timeline 稳定后 | 无法绑定原句引用或影响导出就砍。 |
-| P1 浮动知识树视图 | 知识树 mock 已通过校验后 | 遮挡视频主体、不能拖动或无法折叠就砍。 |
+| P1 浮动知识树视图 | 知识树 mock 已通过校验后 | 遮挡视频主体、不能拖动、不能横向拉宽或无法折叠就砍。 |
 | P1 延迟/状态指标 | Day 3 上午前 | 指标只能伪造且无解释价值就砍。 |
 | P2 可解释回修 demo | Day 3 下午，P0/P1 均稳定后 | 任何 P0 未稳立即砍。 |
 
@@ -465,7 +504,7 @@ flowchart TB
 - 每句 final 都有中文译文。
 - 至少 5 个术语被命中并高亮或标注。
 - 如果启用知识树：至少 3 个大标题分支，每个新增节点有关键原句和时间轴引用。
-- 如果启用浮动树视图：支持架构图和生长树两种展示，默认锚定视频右侧黑框，支持拖动和折叠。
+- 如果启用浮动树视图：支持架构图、连续主干代码树和真树文字树；默认锚定视频左侧黑框，支持拖动、横向拉宽、自动换行和一级大标题折叠。
 - partial 不进入最终导出，final 进入导出。
 - 导出内容包含时间、英文、中文、术语命中。
 - 模拟 ASR 模式可运行。

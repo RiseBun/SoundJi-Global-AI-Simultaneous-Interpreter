@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SoundJi Growing Code Tree</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: #070b12; color: #f8fbff; font-family: Consolas, "Cascadia Mono", monospace; overflow: hidden; }
+    .stage { position: relative; width: 100vw; height: 100vh; background: linear-gradient(90deg, #020409 0 15%, #121826 15% 85%, #020409 85% 100%); }
+    .video { position: absolute; left: 15%; right: 15%; top: 0; bottom: 0; display: grid; place-items: center; color: rgba(255,255,255,.42); text-align: center; border-left: 1px solid rgba(255,255,255,.08); border-right: 1px solid rgba(255,255,255,.08); }
+    .tree-panel { position: absolute; left: 12px; top: 40px; width: calc(15vw - 18px); min-width: 130px; max-width: 560px; max-height: calc(100vh - 118px); padding: 8px 10px 8px 2px; border-right: 1px solid rgba(180,220,255,.68); background: transparent; color: #f4f9ff; cursor: grab; overflow: hidden; text-shadow: 0 1px 8px rgba(0,0,0,.95); }
+    .resize-handle { position: absolute; top: 0; right: -5px; width: 10px; height: 100%; cursor: ew-resize; }
+    .resize-handle::after { content: ""; position: absolute; top: 0; bottom: 0; left: 4px; width: 1px; background: rgba(180,220,255,.8); }
+    .meta { margin-bottom: 6px; color: #9fd1ff; font-size: 11px; white-space: normal; overflow-wrap: anywhere; }
+    .tree-line { display: grid; grid-template-columns: max-content minmax(0,1fr); gap: 0; padding-left: calc(var(--depth) * 13px); font-size: 12px; line-height: 1.22; white-space: normal; overflow-wrap: anywhere; word-break: break-word; }
+    .prefix { color: rgba(215,235,255,.72); min-width: 24px; }
+    .branch { color: #fff; font-weight: 700; }
+    .subtopic { color: #cfe7ff; }
+    .subtitle { position: absolute; left: 20%; right: 20%; bottom: 44px; background: rgba(0,0,0,.48); border: 1px solid rgba(255,255,255,.14); padding: 12px 18px; text-align: center; font-family: Arial, "Microsoft YaHei UI", sans-serif; }
+    .controls { position: absolute; left: 24px; bottom: 24px; display: flex; gap: 8px; padding: 10px; background: rgba(5,7,11,.76); border: 1px solid rgba(255,255,255,.14); border-radius: 6px; }
+    button { border: 1px solid rgba(255,255,255,.2); background: #111827; color: #f8fbff; border-radius: 6px; padding: 8px 10px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <section class="video"><div><div style="font-size:26px">FULLSCREEN COURSE VIDEO</div><div>左侧黑框承载 growing_code_tree</div></div></section>
+    <aside class="tree-panel" id="treePanel" data-anchor="left_black_bar">
+      <div class="meta" id="treeMeta"></div>
+      <div id="treeContent"></div>
+      <div class="resize-handle" id="resizeHandle" title="resize"></div>
+    </aside>
+    <div class="subtitle" id="subtitle">准备阶段：仅显示完整大标题骨架</div>
+    <nav class="controls">
+      <button id="resetBtn" type="button">Reset</button>
+      <button id="nextBtn" type="button">Next</button>
+    </nav>
+  </main>
+  <script>
+    const data = {"root_title": "Building a RAG Assistant with a Vector Database", "updates": ["ktu_001_goal", "ktu_002_embedding", "ktu_003_vector_db", "ktu_004_latency", "ktu_005_glossary", "ktu_006_partial_final", "ktu_007_translation_fallback", "ktu_008_review_timeline", "ktu_009_export", "ktu_010_proof_boundary"], "updateTitles": ["RAG 助手服务内部文档问答", "API 接收问题并创建 embedding", "Vector database 支持相似文档快速检索", "Latency 决定字幕是否跟得上讲者节奏", "Glossary 保证 RAG / embedding 等术语译法一致", "partial 临时显示，final 才进入时间轴", "翻译失败时使用 prepared translation 降级", "Review timeline 同时保存英文、中文和命中术语", "导出 Markdown / JSON 作为可交接 artifact", "先证明 workflow，再接真实 ASR 或会议平台"], "branches": [{"node_id": "branch_goal", "title": "1. 课程目标与产品边界", "updates": [{"update_id": "ktu_001_goal", "title": "RAG 助手服务内部文档问答"}, {"update_id": "ktu_010_proof_boundary", "title": "先证明 workflow，再接真实 ASR 或会议平台"}]}, {"node_id": "branch_retrieval", "title": "2. 检索链路：API -> Embedding -> Vector Database", "updates": [{"update_id": "ktu_002_embedding", "title": "API 接收问题并创建 embedding"}, {"update_id": "ktu_003_vector_db", "title": "Vector database 支持相似文档快速检索"}]}, {"node_id": "branch_realtime", "title": "3. 实时字幕体验：Latency 与 partial/final", "updates": [{"update_id": "ktu_004_latency", "title": "Latency 决定字幕是否跟得上讲者节奏"}, {"update_id": "ktu_006_partial_final", "title": "partial 临时显示，final 才进入时间轴"}]}, {"node_id": "branch_terms_fallback", "title": "4. 术语控制与降级机制", "updates": [{"update_id": "ktu_005_glossary", "title": "Glossary 保证 RAG / embedding 等术语译法一致"}, {"update_id": "ktu_007_translation_fallback", "title": "翻译失败时使用 prepared translation 降级"}]}, {"node_id": "branch_review", "title": "5. 复盘交付：Timeline / Markdown / JSON", "updates": [{"update_id": "ktu_008_review_timeline", "title": "Review timeline 同时保存英文、中文和命中术语"}, {"update_id": "ktu_009_export", "title": "导出 Markdown / JSON 作为可交接 artifact"}]}]};
+    let step = 0;
+    const panel = document.getElementById("treePanel");
+    const content = document.getElementById("treeContent");
+    const meta = document.getElementById("treeMeta");
+    const subtitle = document.getElementById("subtitle");
+    function appendLine(prefix, label, kind, depth) {
+      const row = document.createElement("div");
+      row.className = `tree-line ${kind}`;
+      row.dataset.kind = kind;
+      row.style.setProperty("--depth", String(depth));
+      const p = document.createElement("span");
+      p.className = "prefix";
+      p.textContent = prefix;
+      const text = document.createElement("span");
+      text.className = "label";
+      text.textContent = label;
+      row.append(p, text);
+      content.appendChild(row);
+    }
+    function render() {
+      content.replaceChildren();
+      meta.textContent = step === 0 ? "initial branches only" : `step ${step} / ${data.updates.length}`;
+      appendLine("|-- ", `${data.root_title}/`, "root", 0);
+      data.branches.forEach((branch, index) => {
+        appendLine(index === data.branches.length - 1 ? "`-- " : "|-- ", `${branch.title}/`, "branch", 0);
+        branch.updates.filter(update => data.updates.slice(0, step).includes(update.update_id)).forEach((update, childIndex) => {
+          appendLine(childIndex === branch.updates.length - 1 ? "`-- " : "|-- ", `${update.title}/`, "subtopic", 1);
+        });
+      });
+      subtitle.textContent = step === 0 ? "准备阶段：仅显示完整大标题骨架" : `知识树新增：${data.updateTitles[step - 1]}`;
+    }
+    document.getElementById("nextBtn").onclick = () => { step = Math.min(data.updates.length, step + 1); render(); };
+    document.getElementById("resetBtn").onclick = () => { step = 0; render(); };
+    let dragging = false, resizing = false, dx = 0, dy = 0;
+    const handle = document.getElementById("resizeHandle");
+    handle.addEventListener("mousedown", event => { resizing = true; event.preventDefault(); event.stopPropagation(); });
+    panel.addEventListener("mousedown", event => { if (event.target === handle) return; dragging = true; const rect = panel.getBoundingClientRect(); dx = event.clientX - rect.left; dy = event.clientY - rect.top; });
+    window.addEventListener("mousemove", event => {
+      if (resizing) { const rect = panel.getBoundingClientRect(); panel.style.width = `${Math.max(130, Math.min(560, event.clientX - rect.left))}px`; return; }
+      if (dragging) { panel.style.left = `${event.clientX - dx}px`; panel.style.top = `${event.clientY - dy}px`; }
+    });
+    window.addEventListener("mouseup", () => { dragging = false; resizing = false; });
+    render();
+  </script>
+</body>
+</html>
