@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SoundJi P2 Revision Demo</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #f7f5ef;
+      color: #1d2430;
+      font-family: Arial, "Microsoft YaHei UI", sans-serif;
+    }
+    main { max-width: 980px; margin: 0 auto; padding: 22px; }
+    header { border-bottom: 1px solid #d9d2c3; padding-bottom: 14px; margin-bottom: 16px; }
+    h1 { margin: 0 0 8px; font-size: 24px; }
+    .badge { display: inline-block; border: 1px solid #9a3412; color: #9a3412; background: #fff7ed; border-radius: 6px; padding: 5px 8px; font-weight: 700; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 16px 0; }
+    .panel { border: 1px solid #d9d2c3; background: #fff; border-radius: 6px; padding: 14px; }
+    .panel h2 { margin: 0 0 8px; font-size: 15px; color: #5f4930; }
+    .text { margin: 0; font-size: 20px; line-height: 1.5; }
+    dl { display: grid; grid-template-columns: 150px 1fr; gap: 8px 12px; margin: 0; }
+    dt { color: #6b7280; }
+    dd { margin: 0; }
+    @media (max-width: 760px) { .grid, dl { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>SoundJi P2 Revision Demo</h1>
+      <span class="badge">P2 demo-only / not part of main timeline</span>
+    </header>
+    <section class="grid" aria-label="before and after revision demo">
+      <article class="panel" data-role="before">
+        <h2>Before</h2>
+        <p class="text">今天我们要构建一个 RAG 助手。</p>
+      </article>
+      <article class="panel" data-role="after">
+        <h2>After</h2>
+        <p class="text">今天我们要构建一个检索增强生成助手。</p>
+      </article>
+    </section>
+    <section class="panel" aria-label="revision boundary">
+      <dl>
+        <dt>Event</dt><dd>revision_demo_001</dd>
+        <dt>Source segment</dt><dd>seg_001</dd>
+        <dt>Reason</dt><dd>The glossary maps RAG to 检索增强生成.</dd>
+        <dt>Boundary</dt><dd>P2 optional demo. It is not part of the P0 real-time auto-revision path.</dd>
+      </dl>
+    </section>
+  </main>
+</body>
+</html>
