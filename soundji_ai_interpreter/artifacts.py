@@ -10,6 +10,7 @@ from .data import OUTPUT_DIR, load_fixture, load_json, sample_stream
 from .knowledge_tree import build_knowledge_tree_render_model
 from .knowledge_tree_ui import write_growing_code_tree_html, write_living_text_tree_html
 from .revision_demo import parse_revision_demo_event, write_revision_demo_html
+from .review_study_guide import build_review_study_guide
 from .timeline_ui import write_timeline_review_html
 
 
@@ -71,4 +72,18 @@ def generate_p2_revision_demo_artifact(output_dir: Path = OUTPUT_DIR) -> dict[st
             event,
         )
     }
+
+
+def generate_p2_review_study_guide_artifact(
+    output_dir: Path = OUTPUT_DIR,
+) -> dict[str, Path]:
+    timeline = load_fixture("expected_timeline.json")
+    study_guide = build_review_study_guide(timeline)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    path = output_dir / "review_study_guide.json"
+    path.write_text(
+        json.dumps(study_guide.to_json_dict(), ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    return {"review_study_guide": path}
 

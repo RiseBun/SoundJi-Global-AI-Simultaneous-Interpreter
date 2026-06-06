@@ -1,0 +1,231 @@
+{
+  "object_type": "StudyGuide",
+  "artifact_id": "review_study_guide_p2_demo_001",
+  "boundary": "P2 optional demo artifact. It is not a P0/P1 blocker, not part of the mainline real-time subtitle path, and uses deterministic mock data only.",
+  "summary": "Review Agent P2 optional demo for timeline_tech_talk_p0_001: 10 final timeline items, 8 items with term evidence, and 13 deterministic term hits.",
+  "learning_points": [
+    {
+      "point_id": "lp_001_rag_flow",
+      "title": "RAG retrieval flow",
+      "detail": "The talk introduces a RAG assistant, then moves from API request to embedding and vector database retrieval.",
+      "source_refs": [
+        {
+          "segment_id": "seg_001",
+          "item_id": "timeline_001",
+          "time_label": "00:00.000-00:04.200",
+          "term_ids": [
+            "term_rag"
+          ]
+        },
+        {
+          "segment_id": "seg_002",
+          "item_id": "timeline_002",
+          "time_label": "00:08.200-00:11.800",
+          "term_ids": [
+            "term_api",
+            "term_embedding"
+          ]
+        },
+        {
+          "segment_id": "seg_003",
+          "item_id": "timeline_003",
+          "time_label": "00:16.000-00:20.300",
+          "term_ids": [
+            "term_vector_database"
+          ]
+        }
+      ]
+    },
+    {
+      "point_id": "lp_002_latency_state",
+      "title": "Subtitle stability and latency",
+      "detail": "The timeline separates unstable partial text from final segments while keeping subtitles close to speaker pace.",
+      "source_refs": [
+        {
+          "segment_id": "seg_004",
+          "item_id": "timeline_004",
+          "time_label": "00:24.600-00:29.100",
+          "term_ids": [
+            "term_latency"
+          ]
+        },
+        {
+          "segment_id": "seg_006",
+          "item_id": "timeline_006",
+          "time_label": "00:42.600-00:47.000",
+          "term_ids": [
+            "term_partial",
+            "term_final",
+            "term_timeline"
+          ]
+        }
+      ]
+    },
+    {
+      "point_id": "lp_003_review_export",
+      "title": "Review artifact with source evidence",
+      "detail": "The review timeline preserves bilingual text, matched terms, and exportable Markdown/JSON evidence.",
+      "source_refs": [
+        {
+          "segment_id": "seg_005",
+          "item_id": "timeline_005",
+          "time_label": "00:33.400-00:38.100",
+          "term_ids": [
+            "term_glossary",
+            "term_rag",
+            "term_embedding"
+          ]
+        },
+        {
+          "segment_id": "seg_008",
+          "item_id": "timeline_008",
+          "time_label": "01:00.200-01:04.800",
+          "term_ids": [
+            "term_timeline"
+          ]
+        },
+        {
+          "segment_id": "seg_009",
+          "item_id": "timeline_009",
+          "time_label": "01:09.600-01:14.200",
+          "term_ids": [
+            "term_markdown"
+          ]
+        }
+      ]
+    }
+  ],
+  "open_questions": [
+    {
+      "question_id": "oq_001_latency_budget",
+      "question": "What latency budget is acceptable before translated subtitles feel too far behind the speaker?",
+      "source_refs": [
+        {
+          "segment_id": "seg_004",
+          "item_id": "timeline_004",
+          "time_label": "00:24.600-00:29.100",
+          "term_ids": [
+            "term_latency"
+          ]
+        },
+        {
+          "segment_id": "seg_006",
+          "item_id": "timeline_006",
+          "time_label": "00:42.600-00:47.000",
+          "term_ids": [
+            "term_partial",
+            "term_final",
+            "term_timeline"
+          ]
+        }
+      ]
+    },
+    {
+      "question_id": "oq_002_term_ownership",
+      "question": "Who owns glossary updates when a course introduces new domain terms during a live session?",
+      "source_refs": [
+        {
+          "segment_id": "seg_005",
+          "item_id": "timeline_005",
+          "time_label": "00:33.400-00:38.100",
+          "term_ids": [
+            "term_glossary",
+            "term_rag",
+            "term_embedding"
+          ]
+        },
+        {
+          "segment_id": "seg_008",
+          "item_id": "timeline_008",
+          "time_label": "01:00.200-01:04.800",
+          "term_ids": [
+            "term_timeline"
+          ]
+        }
+      ]
+    }
+  ],
+  "source_timeline_refs": [
+    {
+      "segment_id": "seg_001",
+      "item_id": "timeline_001",
+      "time_label": "00:00.000-00:04.200",
+      "term_ids": [
+        "term_rag"
+      ]
+    },
+    {
+      "segment_id": "seg_002",
+      "item_id": "timeline_002",
+      "time_label": "00:08.200-00:11.800",
+      "term_ids": [
+        "term_api",
+        "term_embedding"
+      ]
+    },
+    {
+      "segment_id": "seg_003",
+      "item_id": "timeline_003",
+      "time_label": "00:16.000-00:20.300",
+      "term_ids": [
+        "term_vector_database"
+      ]
+    },
+    {
+      "segment_id": "seg_004",
+      "item_id": "timeline_004",
+      "time_label": "00:24.600-00:29.100",
+      "term_ids": [
+        "term_latency"
+      ]
+    },
+    {
+      "segment_id": "seg_005",
+      "item_id": "timeline_005",
+      "time_label": "00:33.400-00:38.100",
+      "term_ids": [
+        "term_glossary",
+        "term_rag",
+        "term_embedding"
+      ]
+    },
+    {
+      "segment_id": "seg_006",
+      "item_id": "timeline_006",
+      "time_label": "00:42.600-00:47.000",
+      "term_ids": [
+        "term_partial",
+        "term_final",
+        "term_timeline"
+      ]
+    },
+    {
+      "segment_id": "seg_007",
+      "item_id": "timeline_007",
+      "time_label": "00:51.400-00:55.800",
+      "term_ids": []
+    },
+    {
+      "segment_id": "seg_008",
+      "item_id": "timeline_008",
+      "time_label": "01:00.200-01:04.800",
+      "term_ids": [
+        "term_timeline"
+      ]
+    },
+    {
+      "segment_id": "seg_009",
+      "item_id": "timeline_009",
+      "time_label": "01:09.600-01:14.200",
+      "term_ids": [
+        "term_markdown"
+      ]
+    },
+    {
+      "segment_id": "seg_010",
+      "item_id": "timeline_010",
+      "time_label": "01:19.000-01:24.200",
+      "term_ids": []
+    }
+  ]
+}
