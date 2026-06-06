@@ -13,6 +13,7 @@ if str(ROOT) not in sys.path:
 
 from soundji_ai_interpreter.artifacts import (  # noqa: E402
     artifact_manifest,
+    generate_p2_optional_manifest,
     generate_p2_review_study_guide_artifact,
     generate_p2_revision_demo_artifact,
 )
@@ -37,6 +38,7 @@ def main() -> int:
     paths = {}
     paths.update(generate_p2_revision_demo_artifact(OUTPUT_DIR))
     paths.update(generate_p2_review_study_guide_artifact(OUTPUT_DIR))
+    paths.update(generate_p2_optional_manifest(OUTPUT_DIR, paths))
     print("P2 optional demo artifacts generated:")
     print(artifact_manifest(paths))
 

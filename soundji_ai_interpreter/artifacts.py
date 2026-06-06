@@ -87,3 +87,40 @@ def generate_p2_review_study_guide_artifact(
     )
     return {"review_study_guide": path}
 
+
+def generate_p2_optional_manifest(
+    output_dir: Path = OUTPUT_DIR,
+    artifact_paths: dict[str, Path] | None = None,
+) -> dict[str, Path]:
+    paths = artifact_paths or {
+        **generate_p2_revision_demo_artifact(output_dir),
+        **generate_p2_review_study_guide_artifact(output_dir),
+    }
+    payload = {
+        "object_type": "P2OptionalArtifactManifest",
+        "manifest_id": "p2_optional_artifacts_001",
+        "boundary": (
+            "P2 optional demo artifacts only. These files are not part of the "
+            "P0/P1 mainline real-time subtitle path and do not prove real LLM "
+            "review or real-time auto-revision."
+        ),
+        "artifacts": [
+            {
+                "name": "revision_demo",
+                "path": str(Path("outputs") / "ai_interpreter" / paths["revision_demo"].name),
+                "purpose": "Show one explainable before/after revision demo.",
+                "demo_only": True,
+            },
+            {
+                "name": "review_study_guide",
+                "path": str(Path("outputs") / "ai_interpreter" / paths["review_study_guide"].name),
+                "purpose": "Show deterministic summary, learning points, and open questions with source refs.",
+                "demo_only": True,
+            },
+        ],
+    }
+    output_dir.mkdir(parents=True, exist_ok=True)
+    path = output_dir / "p2_optional_manifest.json"
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return {"p2_optional_manifest": path}
+

@@ -1,0 +1,19 @@
+{
+  "object_type": "P2OptionalArtifactManifest",
+  "manifest_id": "p2_optional_artifacts_001",
+  "boundary": "P2 optional demo artifacts only. These files are not part of the P0/P1 mainline real-time subtitle path and do not prove real LLM review or real-time auto-revision.",
+  "artifacts": [
+    {
+      "name": "revision_demo",
+      "path": "outputs\\ai_interpreter\\revision_demo.html",
+      "purpose": "Show one explainable before/after revision demo.",
+      "demo_only": true
+    },
+    {
+      "name": "review_study_guide",
+      "path": "outputs\\ai_interpreter\\review_study_guide.json",
+      "purpose": "Show deterministic summary, learning points, and open questions with source refs.",
+      "demo_only": true
+    }
+  ]
+}

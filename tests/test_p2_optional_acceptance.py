@@ -61,9 +61,11 @@ def test_p2_optional_acceptance_runner_generates_both_artifacts_and_focused_test
     assert json.loads(manifest_text) == {
         "revision_demo": str(tmp_path / "revision_demo.html"),
         "review_study_guide": str(tmp_path / "review_study_guide.json"),
+        "p2_optional_manifest": str(tmp_path / "p2_optional_manifest.json"),
     }
     assert (tmp_path / "revision_demo.html").exists()
     assert (tmp_path / "review_study_guide.json").exists()
+    assert (tmp_path / "p2_optional_manifest.json").exists()
 
 
 def test_p2_optional_acceptance_runner_stops_when_validation_fails(monkeypatch):
