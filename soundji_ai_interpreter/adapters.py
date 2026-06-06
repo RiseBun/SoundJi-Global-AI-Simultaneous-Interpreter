@@ -81,6 +81,48 @@ def translation_from_timeline_item(item: dict[str, Any]) -> TranslationResultCon
     )
 
 
+def prepared_translation_for_segment(
+    segment: dict[str, Any],
+    timeline_payload: dict[str, Any],
+) -> TranslationResultContract:
+    segment_id = str(segment.get("segment_id", ""))
+    if not segment_id:
+        raise ValueError("segment_id is required for prepared translation lookup")
+    for item in timeline_payload.get("items", []):
+        if not isinstance(item, dict):
+            continue
+        item_segment = item.get("segment", {})
+        if isinstance(item_segment, dict) and item_segment.get("segment_id") == segment_id:
+            return translation_from_timeline_item(item)
+    raise ValueError(f"missing prepared translation for segment: {segment_id}")
+
+
+def prepared_translation_fallback(
+    segment: dict[str, Any],
+    timeline_payload: dict[str, Any],
+    reason: str = "translation adapter unavailable",
+) -> tuple[TranslationResultContract, AdapterFallback]:
+    result = prepared_translation_for_segment(segment, timeline_payload)
+    fallback_result = TranslationResultContract(
+        translation_id=result.translation_id,
+        segment_id=result.segment_id,
+        target_text=result.target_text,
+        status="translation_fallback_used",
+        used_terms=result.used_terms,
+        fallback_used=True,
+        confidence=result.confidence,
+    )
+    return (
+        fallback_result,
+        AdapterFallback(
+            mode_id="fallback_translation_prepared_text",
+            reason=reason,
+            visible_notice="Translation adapter unavailable. Using prepared Chinese translations.",
+            fallback_source="expected_timeline.json translation.target_text",
+        ),
+    )
+
+
 def configured_real_asr_adapter() -> ASRAdapter | AdapterFallback:
     if os.getenv("SOUNDJI_ENABLE_REAL_ASR") != "1":
         return AdapterFallback(
@@ -175,4 +217,3 @@ def _coerce_confidence(value: Any) -> float | None:
         if 0.0 <= confidence <= 1.0:
             return confidence
     raise ValueError("confidence must be a number between 0 and 1")
-
