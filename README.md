@@ -1,12 +1,12 @@
 # 声济 SoundJi - Global AI Simultaneous Interpreter
 
-声济 SoundJi 是一个面向英文技术分享、网课和跨语言会议准备场景的 AI 同声传译学习助手。当前版本先交付 P0 mock proof chain，用于证明“术语可控、状态可追踪、知识结构可沉淀、证据可复盘”的最小工程闭环。
+声济 SoundJi 是一个面向英文技术分享、网课和跨语言会议准备场景的 AI 同声传译学习助手。当前版本已交付 P0/P1 mock proof chain，并补齐 P2 optional demo artifact，用于证明“术语可控、状态可追踪、知识结构可沉淀、证据可复盘”的最小工程闭环。
 
-当前仓库不是生产级同传应用：未接真实 ASR、真实 LLM/翻译模型、真实会议平台、TTS、多语种、API、数据库、前端或生产部署。系统知识树已有 P1 mock contract、校验和 transcript 输出，但真实生成能力尚未实现。
+当前仓库不是生产级同传应用：未接真实 ASR、真实 LLM/翻译模型、真实会议平台、TTS、多语种、API、数据库、前端或生产部署。系统知识树已有 P1 mock contract、可视 demo、校验和 transcript 输出；P2 revision/review 只提供 deterministic demo artifact，不证明真实自动回修或真实 Review Agent。
 
 ## 1. 当前结论
 
-P0 证据链已经可复现：
+P0/P1/P2 optional 证据链已经可复现：
 
 ```text
 README
@@ -16,7 +16,13 @@ README
 -> mock_data/ai_interpreter/*.json
 -> scripts/validate_ai_interpreter_mock_data.py
 -> scripts/run_ai_interpreter_mock_demo.py
+-> scripts/run_p1_acceptance.py
+-> scripts/run_p2_optional_acceptance.py
+-> scripts/run_soundji_acceptance.py
 -> outputs/ai_interpreter/transcript.md/json
+-> outputs/ai_interpreter/revision_demo.html
+-> outputs/ai_interpreter/review_study_guide.json
+-> outputs/ai_interpreter/p2_optional_manifest.json
 -> deliverables/*.zip
 ```
 
@@ -32,7 +38,19 @@ SampleStream
 -> FallbackMode visible notice
 ```
 
-下一步如果继续开发，优先把 `KnowledgeTree` mock contract 做成可视化 demo，再做 P1 ASR/Translation adapter。不要直接承诺生产级同传、真实会议平台或完整实时自动回修。
+P1/P2 optional 已补充：
+
+```text
+KnowledgeTree render model + growing/living tree HTML demos
+-> ASR/Translation adapter contracts with fallback gates
+-> Confidence / latency / visible fallback signals
+-> P2 RevisionDemoEvent demo-only artifact
+-> P2 Review StudyGuide deterministic artifact
+-> P2 optional manifest
+-> Full local acceptance runner
+```
+
+下一步如果继续开发，优先做真实输入/模型的配置门控和可替换 adapter 验证。不要直接承诺生产级同传、真实会议平台、多语种或完整实时自动回修。
 
 ## 2. 技术文档
 
@@ -177,6 +195,9 @@ SoundJi 是**唯一处于领导者象限**（会前准备强 + 会后复盘强�
 ```powershell
 python ".\scripts\validate_ai_interpreter_mock_data.py"
 python ".\scripts\run_ai_interpreter_mock_demo.py"
+python ".\scripts\run_p1_acceptance.py"
+python ".\scripts\run_p2_optional_acceptance.py"
+python ".\scripts\run_soundji_acceptance.py"
 ```
 
 预期输出：
@@ -197,6 +218,9 @@ Summary: finals=10, glossary_entries=10, term_hits=13, knowledge_branches=5, kno
 | `outputs/ai_interpreter/transcript.json` | JSON 双语 transcript |
 | `outputs/ai_interpreter/floating_knowledge_tree_demo.html` | 可拖动白字知识树测试页，模拟全屏视频左右黑框中的自下往上生长效果 |
 | `outputs/ai_interpreter/floating_real_text_tree_demo.html` | 真树形文字知识树测试页，使用树干、枝干和叶节点表达知识增长 |
+| `outputs/ai_interpreter/revision_demo.html` | P2 demo-only 回修样例，展示 before/after/reason |
+| `outputs/ai_interpreter/review_study_guide.json` | P2 deterministic study guide，包含 summary、learning points、open questions 和 source refs |
+| `outputs/ai_interpreter/p2_optional_manifest.json` | P2 optional artifact manifest，标注 demo-only 和非主链路边界 |
 
 ## 6. 当前交付物
 
@@ -212,28 +236,33 @@ Summary: finals=10, glossary_entries=10, term_hits=13, knowledge_branches=5, kno
 | `mock_data/ai_interpreter/fallback_examples.json` | 降级样例 |
 | `scripts/validate_ai_interpreter_mock_data.py` | mock 数据契约校验 |
 | `scripts/run_ai_interpreter_mock_demo.py` | 生成 transcript 的 P0 runner |
+| `scripts/run_p1_acceptance.py` | P1 UI / adapter / signal 验收入口 |
+| `scripts/run_p2_optional_acceptance.py` | P2 optional demo artifact 验收入口 |
+| `scripts/run_soundji_acceptance.py` | P1 + P2 optional + full pytest 的统一本地验收入口 |
 | `outputs/ai_interpreter/transcript.md` | Markdown 输出，包含 timeline、Knowledge Tree 架构图、生长树和增长快照 |
 | `outputs/ai_interpreter/transcript.json` | JSON 输出，包含 timeline、knowledge_tree 和 growth_snapshots |
 | `outputs/ai_interpreter/floating_knowledge_tree_demo.html` | 浮动知识树交互测试页，可拖动、可播放增长步骤 |
 | `outputs/ai_interpreter/floating_real_text_tree_demo.html` | 真树形文字树交互测试页，可拖动、可播放树干分枝增长 |
+| `outputs/ai_interpreter/revision_demo.html` | P2 回修 demo artifact，不进入主 timeline |
+| `outputs/ai_interpreter/review_study_guide.json` | P2 Review Agent mock artifact，不接真实 LLM |
+| `outputs/ai_interpreter/p2_optional_manifest.json` | P2 optional artifacts 清单和边界说明 |
 | `deliverables/ai_interpreter_complete_demo_handoff_20260605_1705.zip` | 完整 demo handoff 包 |
 | `deliverables/ai_interpreter_day1_pr_evidence_20260605_2306.zip` | Day 1 PR 证据包 |
 
 ## 7. 队友接手路径
 
-1. 阅读 `README.md`，确认当前是 P0 mock proof chain。
+1. 阅读 `README.md`，确认当前是 P0/P1/P2 optional mock proof chain。
 2. 阅读 `docs/ai_interpreter/01_technical_proposal.md`，理解为什么做和为什么不做泛化同传平台。
 3. 阅读 `docs/ai_interpreter/02_architecture_design.md`，理解模块边界和 mock/real 替换方式。
 4. 阅读 `docs/ai_interpreter/03_implementation_design.md`，理解对象、事件、状态、验收样例和 72 小时 MVP 裁剪。
-5. 运行 `scripts/validate_ai_interpreter_mock_data.py`。
-6. 运行 `scripts/run_ai_interpreter_mock_demo.py`。
-7. 查看 `outputs/ai_interpreter/transcript.md` 和 `outputs/ai_interpreter/transcript.json`。
-8. 若继续开发，优先把浮动知识树做成可拖动 UI 或继续拆 P1 adapter 边界，不直接承诺生产同传。
+5. 运行 `scripts/run_soundji_acceptance.py` 做完整本地验收。
+6. 查看 `outputs/ai_interpreter/transcript.md`、`outputs/ai_interpreter/transcript.json`、`outputs/ai_interpreter/revision_demo.html`、`outputs/ai_interpreter/review_study_guide.json` 和 `outputs/ai_interpreter/p2_optional_manifest.json`。
+7. 若继续开发，优先做真实 ASR/Translation/LLM 的配置门控和 adapter 验证，不直接承诺生产同传。
 
 可直接发给队友的话术：
 
 ```text
-这是 SoundJi AI 同声传译助手的 Day 1 P0/P1 mock 交接包，不是生产应用。请先读 README.md，再读 docs/ai_interpreter/01_technical_proposal.md、02_architecture_design.md、03_implementation_design.md；然后运行 scripts/validate_ai_interpreter_mock_data.py 与 scripts/run_ai_interpreter_mock_demo.py，最后查看 outputs/ai_interpreter/transcript.md / transcript.json。当前证明的是"术语可控、状态可追踪、证据可复盘"的最小闭环；系统知识树已有 mock 数据、引用校验和输出样例，但还没有真实生成实现，不证明真实 ASR/LLM 或会议平台接入。
+这是 SoundJi AI 同声传译助手的 P0/P1/P2 optional mock 交接包，不是生产应用。请先读 README.md，再读 docs/ai_interpreter/01_technical_proposal.md、02_architecture_design.md、03_implementation_design.md；然后运行 scripts/run_soundji_acceptance.py，最后查看 outputs/ai_interpreter/transcript.md / transcript.json / revision_demo.html / review_study_guide.json / p2_optional_manifest.json。当前证明的是"术语可控、状态可追踪、知识结构可沉淀、证据可复盘"的 mock 闭环；不证明真实 ASR/LLM、真实 Review Agent、真实自动回修或会议平台接入。
 ```
 
 ## 8. Day 1 PR 描述模板
@@ -321,13 +350,19 @@ I: 推断或项目内判断
 │       └── fallback_examples.json
 ├── scripts/
 │   ├── validate_ai_interpreter_mock_data.py
-│   └── run_ai_interpreter_mock_demo.py
+│   ├── run_ai_interpreter_mock_demo.py
+│   ├── run_p1_acceptance.py
+│   ├── run_p2_optional_acceptance.py
+│   └── run_soundji_acceptance.py
 ├── outputs/
 │   └── ai_interpreter/
 │       ├── transcript.md
 │       ├── transcript.json
 │       ├── floating_knowledge_tree_demo.html
-│       └── floating_real_text_tree_demo.html
+│       ├── floating_real_text_tree_demo.html
+│       ├── revision_demo.html
+│       ├── review_study_guide.json
+│       └── p2_optional_manifest.json
 └── deliverables/
     ├── ai_interpreter_complete_demo_handoff_20260605_1705.zip
     └── ai_interpreter_day1_pr_evidence_20260605_2306.zip
@@ -340,8 +375,9 @@ I: 推断或项目内判断
 - 未接真实 LLM 或翻译模型。
 - 未接真实会议平台。
 - 未实现 TTS、多语种、API、数据库或前端。
-- 未实现真实系统知识树生成；当前完成的是 P1 mock contract、引用校验和输出样例。
+- 未实现真实系统知识树生成；当前完成的是 P1 mock contract、引用校验、UI demo 和输出样例。
 - 未证明生产级低延迟。
 - `RevisionDemoEvent` 是 P2 demo-only，不进入主 timeline。
+- `review_study_guide.json` 是 P2 deterministic mock，不是实时 Review Agent 或真实 LLM 总结。
 - 如复用历史代码，必须在 PR 描述中注明来源。
 - 如引入第三方依赖，必须在 README 和 PR 描述中列明。
