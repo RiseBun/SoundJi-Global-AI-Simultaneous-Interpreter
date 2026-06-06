@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SoundJi Floating Knowledge Tree Demo</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #05070b;
+      color: #f2f6ff;
+      font-family: Consolas, "Cascadia Mono", "Microsoft YaHei UI", monospace;
+      overflow: hidden;
+    }
+    .stage {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background:
+        linear-gradient(90deg, #020308 0 14%, transparent 14% 86%, #020308 86% 100%),
+        radial-gradient(circle at center, #182033 0, #0b101b 50%, #05070b 100%);
+    }
+    .video {
+      position: absolute;
+      left: 14%;
+      right: 14%;
+      top: 0;
+      bottom: 0;
+      display: grid;
+      place-items: center;
+      border-left: 1px solid rgba(255,255,255,0.08);
+      border-right: 1px solid rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.36);
+      letter-spacing: 0.08em;
+      text-align: center;
+    }
+    .subtitle {
+      position: absolute;
+      left: 18%;
+      right: 18%;
+      bottom: 48px;
+      padding: 12px 18px;
+      background: rgba(0,0,0,0.42);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #fff;
+      font-size: 18px;
+      line-height: 1.45;
+      text-align: center;
+    }
+    .tree-panel {
+      position: absolute;
+      left: 12px;
+      top: 44px;
+      box-sizing: border-box;
+      width: calc(14vw - 18px);
+      min-width: 108px;
+      max-width: 520px;
+      max-height: calc(100vh - 120px);
+      padding: 8px 8px 8px 2px;
+      background: transparent;
+      border-right: 1px solid rgba(159, 209, 255, 0.56);
+      color: #eaf2ff;
+      font: 15px/1.45 Consolas, "Cascadia Mono", "Microsoft YaHei UI", monospace;
+      white-space: normal;
+      overflow: hidden;
+      user-select: none;
+      cursor: grab;
+      text-shadow: 0 1px 8px rgba(0,0,0,0.95), 0 0 2px rgba(255,255,255,0.45);
+    }
+    .tree-panel:active {
+      cursor: grabbing;
+    }
+    .resize-handle {
+      position: absolute;
+      top: 0;
+      right: -4px;
+      width: 8px;
+      height: 100%;
+      cursor: ew-resize;
+      z-index: 2;
+    }
+    .resize-handle::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 3px;
+      width: 1px;
+      background: rgba(159, 209, 255, 0.66);
+      box-shadow: 0 0 6px rgba(159, 209, 255, 0.35);
+    }
+    .tree-meta {
+      margin-bottom: 4px;
+      color: #9fd1ff;
+      font-size: 11px;
+      line-height: 1.25;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      text-shadow: 0 1px 8px rgba(0,0,0,0.95);
+    }
+    .tree-content {
+      transition: opacity 120ms ease;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      white-space: normal;
+    }
+    .tree-line {
+      display: grid;
+      grid-template-columns: max-content minmax(0, 1fr);
+      column-gap: 1px;
+      align-items: start;
+      box-sizing: border-box;
+      max-width: 100%;
+      min-height: 0;
+      padding-left: calc(var(--tree-depth, 0) * 7px);
+      color: #eef6ff;
+      font: 12px/1.18 Consolas, "Cascadia Mono", "Microsoft YaHei UI", monospace;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .tree-prefix {
+      line-height: 1.18;
+      white-space: nowrap;
+      color: rgba(210, 232, 255, 0.76);
+    }
+    .tree-label {
+      min-width: 0;
+      max-width: 100%;
+      line-height: 1.18;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .tree-line.root .tree-label {
+      color: #eaf6ff;
+      font-weight: 700;
+    }
+    .tree-line.branch {
+      cursor: pointer;
+      color: #f8fbff;
+    }
+    .tree-line.branch .tree-label {
+      font-weight: 700;
+    }
+    .tree-line.branch:hover {
+      color: #9fd1ff;
+    }
+    .tree-line.subtopic {
+      color: #cfe7ff;
+      font-size: 12px;
+      opacity: 0.96;
+    }
+    .tree-line.tertiary {
+      color: #d7ebff;
+      font-size: 11px;
+      opacity: 0.94;
+    }
+    .tree-line.collapsed {
+      color: rgba(238, 246, 255, 0.72);
+    }
+    .controls {
+      position: absolute;
+      left: 24px;
+      bottom: 24px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      padding: 10px;
+      background: rgba(5, 7, 11, 0.74);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+    }
+    button {
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 6px;
+      background: #111827;
+      color: #f8fbff;
+      padding: 8px 10px;
+      font: 13px Consolas, monospace;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #1f2937;
+    }
+    input[type="range"] {
+      width: 220px;
+    }
+    .hint {
+      position: absolute;
+      left: 18%;
+      top: 24px;
+      max-width: 460px;
+      color: rgba(255,255,255,0.68);
+      font: 14px/1.6 "Microsoft YaHei UI", sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <section class="video">
+      <div>
+        <div style="font-size: 26px;">FULLSCREEN COURSE VIDEO</div>
+        <div style="margin-top: 10px; font-size: 14px;">左右黑框用于承载浮动白字知识树</div>
+      </div>
+    </section>
+    <div class="subtitle" id="subtitle">字幕播放区：知识树随着 final 字幕逐步长大</div>
+    <aside class="tree-panel" id="treePanel">
+      <div class="tree-meta" id="treeMeta"></div>
+      <div class="tree-content" id="treeContent"></div>
+      <div class="resize-handle" id="resizeHandle" title="左右拖动调整知识树宽度"></div>
+    </aside>
+    <div class="hint">
+      <strong>Building a RAG Assistant with a Vector Database</strong><br>
+      拖动右侧白字树可以换位置；点击 Next 模拟视频进度。一级大标题会自动收起，点击 [+] 可展开。
+    </div>
+    <nav class="controls">
+      <button id="resetBtn">Reset</button>
+      <button id="prevBtn">Prev</button>
+      <button id="nextBtn">Next</button>
+      <button id="playBtn">Play</button>
+      <input id="stepRange" type="range" min="0" max="0" value="0">
+    </nav>
+  </main>
+  <script>
+    const data = {"root_title": "Building a RAG Assistant with a Vector Database", "branches": [{"node_id": "branch_goal", "title": "1. 课程目标与产品边界", "index": 0, "updates": [{"update_id": "ktu_001_goal", "title": "RAG 助手服务内部文档问答", "timeline_ref": "00:00-00:04", "tertiary_topics": ["RAG 助手服务内部文档问答"]}, {"update_id": "ktu_010_proof_boundary", "title": "先证明 workflow，再接真实 ASR 或会议平台", "timeline_ref": "01:19-01:24", "tertiary_topics": ["先证明 workflow，再接真实 ASR 或会议平台"]}]}, {"node_id": "branch_retrieval", "title": "2. 检索链路：API -> Embedding -> Vector Database", "index": 1, "updates": [{"update_id": "ktu_002_embedding", "title": "API 接收问题并创建 embedding", "timeline_ref": "00:08-00:11", "tertiary_topics": ["API 接收问题并创建 embedding"]}, {"update_id": "ktu_003_vector_db", "title": "Vector database 支持相似文档快速检索", "timeline_ref": "00:16-00:20", "tertiary_topics": ["Vector database 支持相似文档快速检索"]}]}, {"node_id": "branch_realtime", "title": "3. 实时字幕体验：Latency 与 partial/final", "index": 2, "updates": [{"update_id": "ktu_004_latency", "title": "Latency 决定字幕是否跟得上讲者节奏", "timeline_ref": "00:24-00:29", "tertiary_topics": ["Latency 决定字幕是否跟得上讲者节奏"]}, {"update_id": "ktu_006_partial_final", "title": "partial 临时显示，final 才进入时间轴", "timeline_ref": "00:42-00:47", "tertiary_topics": ["partial 临时显示，final 才进入时间轴"]}]}, {"node_id": "branch_terms_fallback", "title": "4. 术语控制与降级机制", "index": 3, "updates": [{"update_id": "ktu_005_glossary", "title": "Glossary 保证 RAG / embedding 等术语译法一致", "timeline_ref": "00:33-00:38", "tertiary_topics": ["Glossary 保证 RAG", "embedding 等术语译法一致"]}, {"update_id": "ktu_007_translation_fallback", "title": "翻译失败时使用 prepared translation 降级", "timeline_ref": "00:51-00:55", "tertiary_topics": ["翻译失败时使用 prepared translation 降级"]}]}, {"node_id": "branch_review", "title": "5. 复盘交付：Timeline / Markdown / JSON", "index": 4, "updates": [{"update_id": "ktu_008_review_timeline", "title": "Review timeline 同时保存英文、中文和命中术语", "timeline_ref": "01:00-01:04", "tertiary_topics": ["Review timeline 同时保存英文", "中文和命中术语"]}, {"update_id": "ktu_009_export", "title": "导出 Markdown / JSON 作为可交接 artifact", "timeline_ref": "01:09-01:14", "tertiary_topics": ["导出 Markdown", "JSON 作为可交接 artifact"]}]}], "snapshots": [{"update_id": "initial_branches", "segment_id": "", "title": "初代结构树：仅显示完整大标题分类", "timeline_ref": "准备阶段", "active_update_ids": []}, {"update_id": "ktu_001_goal", "segment_id": "seg_001", "title": "RAG 助手服务内部文档问答", "timeline_ref": "00:00-00:04", "active_update_ids": ["ktu_001_goal"]}, {"update_id": "ktu_002_embedding", "segment_id": "seg_002", "title": "API 接收问题并创建 embedding", "timeline_ref": "00:08-00:11", "active_update_ids": ["ktu_001_goal", "ktu_002_embedding"]}, {"update_id": "ktu_003_vector_db", "segment_id": "seg_003", "title": "Vector database 支持相似文档快速检索", "timeline_ref": "00:16-00:20", "active_update_ids": ["ktu_001_goal", "ktu_002_embedding", "ktu_003_vector_db"]}, {"update_id": "ktu_004_latency", "segment_id": "seg_004", "title": "Latency 决定字幕是否跟得上讲者节奏", "timeline_ref": "00:24-00:29", "active_update_ids": ["ktu_001_goal", "ktu_002_embedding", "ktu_003_vector_db", "ktu_004_latency"]}, {"update_id": "ktu_005_glossary", "segment_id": "seg_005", "title": "Glossary 保证 RAG / embedding 等术语译法一致", "timeline_ref": "00:33-00:38", "active_update_ids": ["ktu_001_goal", "ktu_002_embedding", "ktu_003_vector_db", "ktu_004_latency", "ktu_005_glossary"]}, {"update_id": "ktu_006_partial_final", "segment_id": "seg_006", "title": "partial 临时显示，final 才进入时间轴", "timeline_ref": "00:42-00:47", "active_update_ids": ["ktu_001_goal", "ktu_002_embedding", "ktu_003_vector_db", "ktu_004_latency", "ktu_005_glossary", "ktu_006_partial_final"]}, {"update_id": "ktu_007_translation_fallback", "segment_id": "seg_007", "title": "翻译失败时使用 prepared translation 降级", "timeline_ref": "00:51-00:55", "active_update_ids": ["ktu_001_goal", "ktu_002_embedding", "ktu_003_vector_db", "ktu_004_latency", "ktu_005_glossary", "ktu_006_partial_final", "ktu_007_translation_fallback"]}, {"update_id": "ktu_008_review_timeline", "segment_id": "seg_008", "title": "Review timeline 同时保存英文、中文和命中术语", "timeline_ref": "01:00-01:04", "active_update_ids": ["ktu_001_goal", "ktu_002_embedding", "ktu_003_vector_db", "ktu_004_latency", "ktu_005_glossary", "ktu_006_partial_final", "ktu_007_translation_fallback", "ktu_008_review_timeline"]}, {"update_id": "ktu_009_export", "segment_id": "seg_009", "title": "导出 Markdown / JSON 作为可交接 artifact", "timeline_ref": "01:09-01:14", "active_update_ids": ["ktu_001_goal", "ktu_002_embedding", "ktu_003_vector_db", "ktu_004_latency", "ktu_005_glossary", "ktu_006_partial_final", "ktu_007_translation_fallback", "ktu_008_review_timeline", "ktu_009_export"]}, {"update_id": "ktu_010_proof_boundary", "segment_id": "seg_010", "title": "先证明 workflow，再接真实 ASR 或会议平台", "timeline_ref": "01:19-01:24", "active_update_ids": ["ktu_001_goal", "ktu_002_embedding", "ktu_003_vector_db", "ktu_004_latency", "ktu_005_glossary", "ktu_006_partial_final", "ktu_007_translation_fallback", "ktu_008_review_timeline", "ktu_009_export", "ktu_010_proof_boundary"]}]};
+    let current = 0;
+    let timer = null;
+    const manualBranchExpanded = new Set();
+    const manualBranchCollapsed = new Set();
+    const panel = document.getElementById("treePanel");
+    const meta = document.getElementById("treeMeta");
+    const content = document.getElementById("treeContent");
+    const subtitle = document.getElementById("subtitle");
+    const range = document.getElementById("stepRange");
+    range.max = String(data.snapshots.length - 1);
+
+    function appendLine(prefix, label, className = "", depth = 0) {
+      const line = document.createElement("div");
+      line.className = `tree-line ${className}`.trim();
+      line.style.setProperty("--tree-depth", String(depth));
+      const prefixNode = document.createElement("span");
+      prefixNode.className = "tree-prefix";
+      prefixNode.textContent = prefix;
+      const labelNode = document.createElement("span");
+      labelNode.className = "tree-label";
+      labelNode.textContent = label;
+      line.append(prefixNode, labelNode);
+      content.appendChild(line);
+      return line;
+    }
+
+    function renderTree(snapshot) {
+      content.replaceChildren();
+      const active = new Set(snapshot.active_update_ids || []);
+      const currentUpdateId = snapshot.update_id;
+      const activeBranch = data.branches.find(branch =>
+        branch.updates.some(update => update.update_id === currentUpdateId)
+      );
+      const currentBranchId = activeBranch ? activeBranch.node_id : "";
+      appendLine("", "Root/", "root", 0);
+      data.branches.forEach((branch, branchIndex) => {
+        const branchIsLast = branchIndex === data.branches.length - 1;
+        const activeUpdates = branch.updates.filter(update => active.has(update.update_id));
+        const branchHasContent = activeUpdates.length > 0;
+        const isCurrentBranch = branch.node_id === currentBranchId;
+        const isBranchExpanded = branchHasContent && (
+          manualBranchExpanded.has(branch.node_id) ||
+          (isCurrentBranch && !manualBranchCollapsed.has(branch.node_id))
+        );
+        const branchStem = branchIndex === data.branches.length - 1 ? "└" : "├";
+        const branchPrefix = branchHasContent ? `${branchStem}${isBranchExpanded ? "-" : "+"}` : branchStem;
+        const branchLine = appendLine(branchPrefix, `${branch.title}/`, `branch ${isBranchExpanded ? "" : "collapsed"}`, 0);
+        branchLine.dataset.branchId = branch.node_id;
+        branchLine.title = isBranchExpanded ? "点击收起一级大标题" : "点击展开一级大标题";
+        branchLine.onclick = () => {
+          if (!branchHasContent) return;
+          if (isBranchExpanded) {
+            manualBranchExpanded.delete(branch.node_id);
+            manualBranchCollapsed.add(branch.node_id);
+          } else {
+            manualBranchCollapsed.delete(branch.node_id);
+            manualBranchExpanded.add(branch.node_id);
+          }
+          render(current);
+        };
+        if (!isBranchExpanded) return;
+        activeUpdates.forEach((update, updateIndex) => {
+          const updatePrefix = updateIndex === activeUpdates.length - 1 ? "└" : "├";
+          appendLine(updatePrefix, `${update.title}/`, "subtopic", 1);
+        });
+      });
+    }
+
+    function render(index) {
+      current = Math.max(0, Math.min(index, data.snapshots.length - 1));
+      const snap = data.snapshots[current];
+      meta.textContent = `${current + 1}/${data.snapshots.length}  ${snap.title}`;
+      renderTree(snap);
+      subtitle.textContent = current === 0
+        ? "准备阶段：先给出完整大标题分类式初代结构树"
+        : `知识树更新：${snap.title}`;
+      range.value = String(current);
+    }
+
+    document.getElementById("resetBtn").onclick = () => render(0);
+    document.getElementById("prevBtn").onclick = () => render(current - 1);
+    document.getElementById("nextBtn").onclick = () => render(current + 1);
+    document.getElementById("playBtn").onclick = () => {
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+        return;
+      }
+      timer = setInterval(() => {
+        if (current >= data.snapshots.length - 1) {
+          clearInterval(timer);
+          timer = null;
+        } else {
+          render(current + 1);
+        }
+      }, 1300);
+    };
+    range.oninput = event => render(Number(event.target.value));
+
+    let dragging = false;
+    let resizing = false;
+    let dx = 0;
+    let dy = 0;
+    const resizeHandle = document.getElementById("resizeHandle");
+    resizeHandle.addEventListener("mousedown", event => {
+      resizing = true;
+      event.stopPropagation();
+      event.preventDefault();
+    });
+    panel.addEventListener("mousedown", event => {
+      if (event.target === resizeHandle) return;
+      dragging = true;
+      const rect = panel.getBoundingClientRect();
+      dx = event.clientX - rect.left;
+      dy = event.clientY - rect.top;
+    });
+    window.addEventListener("mousemove", event => {
+      if (resizing) {
+        const rect = panel.getBoundingClientRect();
+        const stageLimit = Math.max(118, window.innerWidth * 0.36);
+        const nextWidth = Math.max(108, Math.min(stageLimit, event.clientX - rect.left));
+        panel.style.width = `${nextWidth}px`;
+        return;
+      }
+      if (!dragging) return;
+      panel.style.left = `${event.clientX - dx}px`;
+      panel.style.top = `${event.clientY - dy}px`;
+      panel.style.right = "auto";
+      panel.style.bottom = "auto";
+    });
+    window.addEventListener("mouseup", () => {
+      dragging = false;
+      resizing = false;
+    });
+
+    const initialStep = Number(new URLSearchParams(window.location.search).get("step") || "0");
+    render(Number.isFinite(initialStep) ? initialStep : 0);
+  </script>
+</body>
+</html>

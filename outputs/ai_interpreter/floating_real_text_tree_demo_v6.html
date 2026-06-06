@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SoundJi Living Text Tree Demo</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      background: #04060a;
+      color: #f4f8ff;
+      font-family: "Microsoft YaHei UI", system-ui, sans-serif;
+    }
+    .stage {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background:
+        linear-gradient(90deg, #020308 0 15%, transparent 15% 85%, #020308 85% 100%),
+        radial-gradient(circle at center, #1b2338 0, #101624 48%, #05070b 100%);
+    }
+    .video {
+      position: absolute;
+      inset: 0 15%;
+      display: grid;
+      place-items: center;
+      color: rgba(255,255,255,0.35);
+      border-left: 1px solid rgba(255,255,255,0.08);
+      border-right: 1px solid rgba(255,255,255,0.08);
+      text-align: center;
+    }
+    .living-tree {
+      position: absolute;
+      left: 12px;
+      bottom: 16px;
+      width: calc(15vw - 24px);
+      height: calc(100vh - 32px);
+      cursor: grab;
+      user-select: none;
+      color: white;
+      text-shadow: 0 1px 8px rgba(0,0,0,0.96), 0 0 2px rgba(255,255,255,0.55);
+    }
+    .living-tree:active { cursor: grabbing; }
+    svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+    .trunk, .branch-line, .twig-line, .root-line, .soil-line {
+      fill: none;
+      stroke: rgba(238,246,255,0.82);
+      stroke-width: 2.2;
+      stroke-linecap: round;
+    }
+    .root-line { stroke-width: 1.2; opacity: 0.58; }
+    .soil-line { stroke-width: 1.3; opacity: 0.64; }
+    .branch-line { stroke-width: 1.8; opacity: 0.92; }
+    .twig-line { stroke-width: 1.2; opacity: 0.76; }
+    .root-label, .soil-label, .branch-label, .branch-on-line, .branch-index, .leaf-label, .tertiary-label, .growth-label {
+      fill: #f5f9ff;
+      font-family: Consolas, "Cascadia Mono", "Microsoft YaHei UI", monospace;
+      paint-order: stroke;
+      stroke: rgba(0,0,0,0.9);
+      stroke-width: 4px;
+      stroke-linejoin: round;
+    }
+    .root-label { font-size: 13px; font-weight: 700; }
+    .soil-label { font-size: 12px; font-weight: 700; }
+    .branch-label { font-size: 12px; font-weight: 700; }
+    .branch-on-line { font-size: 10.5px; font-weight: 700; }
+    .branch-index { font-size: 9.5px; fill: #9fd1ff; }
+    .leaf-label { font-size: 9.4px; font-weight: 700; }
+    .tertiary-label { font-size: 8.3px; fill: #d7ebff; }
+    .growth-label { font-size: 10px; fill: #9fd1ff; }
+    .seed-dot, .leaf-dot {
+      fill: #f5f9ff;
+      filter: drop-shadow(0 0 4px rgba(255,255,255,0.65));
+    }
+    .seed-dot { opacity: 0.78; }
+    .branch-group { cursor: pointer; }
+    .branch-group:hover .branch-on-line { fill: #9fd1ff; }
+    .current-branch .seed-dot { filter: drop-shadow(0 0 8px rgba(159,209,255,0.95)); }
+    .current-branch .branch-line { stroke: rgba(159,209,255,0.9); }
+    .collapsed-branch .leaf-cluster, .collapsed-branch .twig-line { display: none; }
+    .collapsed-branch .branch-on-line { opacity: 0.74; }
+    .leaf-cluster { opacity: 0.95; }
+    .active-grow {
+      animation: pop 260ms ease-out;
+    }
+    @keyframes pop {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .controls {
+      position: absolute;
+      left: 24px;
+      bottom: 24px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      padding: 10px;
+      background: rgba(5, 7, 11, 0.74);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 8px;
+    }
+    button {
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 6px;
+      background: #111827;
+      color: #f8fbff;
+      padding: 8px 10px;
+      font: 13px Consolas, monospace;
+      cursor: pointer;
+    }
+    button:hover { background: #1f2937; }
+    input[type="range"] { width: 220px; }
+    .hint {
+      position: absolute;
+      left: 18%;
+      top: 24px;
+      max-width: 520px;
+      color: rgba(255,255,255,0.72);
+      font: 14px/1.6 "Microsoft YaHei UI", sans-serif;
+    }
+    .version {
+      position: absolute;
+      right: 20px;
+      top: 18px;
+      color: #9fd1ff;
+      font: 12px Consolas, "Cascadia Mono", monospace;
+      text-shadow: 0 1px 8px rgba(0,0,0,0.96);
+    }
+    .subtitle {
+      position: absolute;
+      left: 18%;
+      right: 18%;
+      bottom: 48px;
+      padding: 12px 18px;
+      background: rgba(0,0,0,0.42);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #fff;
+      font-size: 18px;
+      line-height: 1.45;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <main class="stage">
+    <section class="video">
+      <div>
+        <div style="font-size: 26px;">FULLSCREEN COURSE VIDEO</div>
+        <div style="margin-top: 10px; font-size: 14px;">右侧黑框：真树形文字知识树</div>
+      </div>
+    </section>
+    <div class="hint">
+      <strong>Living Text Tree</strong><br>
+      初始只显示大标题枝干；点击 Next 后，当前一级大标题展开二级小标题和三级分点。整棵树可拖动。
+    </div>
+    <div class="version">v6 left-band / wrapped demos</div>
+    <div class="subtitle" id="subtitle">准备阶段：先显示完整大标题树</div>
+    <aside class="living-tree" id="treePanel">
+      <svg id="treeSvg" viewBox="0 0 240 920" preserveAspectRatio="xMinYMax meet"></svg>
+    </aside>
+    <nav class="controls">
+      <button id="resetBtn">Reset</button>
+      <button id="prevBtn">Prev</button>
+      <button id="nextBtn">Next</button>
+      <button id="playBtn">Play</button>
+      <input id="stepRange" type="range" min="0" max="0" value="0">
+    </nav>
+  </main>
+  <script>
+    const data = {"root_title": "Building a RAG Assistant with a Vector Database", "branches": [{"node_id": "branch_goal", "title": "1. 课程目标与产品边界", "index": 0, "updates": [{"update_id": "ktu_001_goal", "title": "RAG 助手服务内部文档问答", "timeline_ref": "00:00-00:04", "tertiary_topics": ["RAG 助手服务内部文档问答"]}, {"update_id": "ktu_010_proof_boundary", "title": "先证明 workflow，再接真实 ASR 或会议平台", "timeline_ref": "01:19-01:24", "tertiary_topics": ["先证明 workflow，再接真实 ASR 或会议平台"]}]}, {"node_id": "branch_retrieval", "title": "2. 检索链路：API -> Embedding -> Vector Database", "index": 1, "updates": [{"update_id": "ktu_002_embedding", "title": "API 接收问题并创建 embedding", "timeline_ref": "00:08-00:11", "tertiary_topics": ["API 接收问题并创建 embedding"]}, {"update_id": "ktu_003_vector_db", "title": "Vector database 支持相似文档快速检索", "timeline_ref": "00:16-00:20", "tertiary_topics": ["Vector database 支持相似文档快速检索"]}]}, {"node_id": "branch_realtime", "title": "3. 实时字幕体验：Latency 与 partial/final", "index": 2, "updates": [{"update_id": "ktu_004_latency", "title": "Latency 决定字幕是否跟得上讲者节奏", "timeline_ref": "00:24-00:29", "tertiary_topics": ["Latency 决定字幕是否跟得上讲者节奏"]}, {"update_id": "ktu_006_partial_final", "title": "partial 临时显示，final 才进入时间轴", "timeline_ref": "00:42-00:47", "tertiary_topics": ["partial 临时显示，final 才进入时间轴"]}]}, {"node_id": "branch_terms_fallback", "title": "4. 术语控制与降级机制", "index": 3, "updates": [{"update_id": "ktu_005_glossary", "title": "Glossary 保证 RAG / embedding 等术语译法一致", "timeline_ref": "00:33-00:38", "tertiary_topics": ["Glossary 保证 RAG", "embedding 等术语译法一致"]}, {"update_id": "ktu_007_translation_fallback", "title": "翻译失败时使用 prepared translation 降级", "timeline_ref": "00:51-00:55", "tertiary_topics": ["翻译失败时使用 prepared translation 降级"]}]}, {"node_id": "branch_review", "title": "5. 复盘交付：Timeline / Markdown / JSON", "index": 4, "updates": [{"update_id": "ktu_008_review_timeline", "title": "Review timeline 同时保存英文、中文和命中术语", "timeline_ref": "01:00-01:04", "tertiary_topics": ["Review timeline 同时保存英文", "中文和命中术语"]}, {"update_id": "ktu_009_export", "title": "导出 Markdown / JSON 作为可交接 artifact", "timeline_ref": "01:09-01:14", "tertiary_topics": ["导出 Markdown", "JSON 作为可交接 artifact"]}]}], "snapshots": [{"update_id": "initial_branches", "segment_id": "", "title": "初代结构树：完整大标题分类", "timeline_ref": "准备阶段", "active_update_ids": []}, {"update_id": "ktu_001_goal", "segment_id": "seg_001", "title": "RAG 助手服务内部文档问答", "timeline_ref": "00:00-00:04", "active_update_ids": ["ktu_001_goal"]}, {"update_id": "ktu_002_embedding", "segment_id": "seg_002", "title": "API 接收问题并创建 embedding", "timeline_ref": "00:08-00:11", "active_update_ids": ["ktu_001_goal", "ktu_002_embedding"]}, {"update_id": "ktu_003_vector_db", "segment_id": "seg_003", "title": "Vector database 支持相似文档快速检索", "timeline_ref": "00:16-00:20", "active_update_ids": ["ktu_001_goal", "ktu_002_embedding", "ktu_003_vector_db"]}, {"update_id": "ktu_004_latency", "segment_id": "seg_004", "title": "Latency 决定字幕是否跟得上讲者节奏", "timeline_ref": "00:24-00:29", "active_update_ids": ["ktu_001_goal", "ktu_002_embedding", "ktu_003_vector_db", "ktu_004_latency"]}, {"update_id": "ktu_005_glossary", "segment_id": "seg_005", "title": "Glossary 保证 RAG / embedding 等术语译法一致", "timeline_ref": "00:33-00:38", "active_update_ids": ["ktu_001_goal", "ktu_002_embedding", "ktu_003_vector_db", "ktu_004_latency", "ktu_005_glossary"]}, {"update_id": "ktu_006_partial_final", "segment_id": "seg_006", "title": "partial 临时显示，final 才进入时间轴", "timeline_ref": "00:42-00:47", "active_update_ids": ["ktu_001_goal", "ktu_002_embedding", "ktu_003_vector_db", "ktu_004_latency", "ktu_005_glossary", "ktu_006_partial_final"]}, {"update_id": "ktu_007_translation_fallback", "segment_id": "seg_007", "title": "翻译失败时使用 prepared translation 降级", "timeline_ref": "00:51-00:55", "active_update_ids": ["ktu_001_goal", "ktu_002_embedding", "ktu_003_vector_db", "ktu_004_latency", "ktu_005_glossary", "ktu_006_partial_final", "ktu_007_translation_fallback"]}, {"update_id": "ktu_008_review_timeline", "segment_id": "seg_008", "title": "Review timeline 同时保存英文、中文和命中术语", "timeline_ref": "01:00-01:04", "active_update_ids": ["ktu_001_goal", "ktu_002_embedding", "ktu_003_vector_db", "ktu_004_latency", "ktu_005_glossary", "ktu_006_partial_final", "ktu_007_translation_fallback", "ktu_008_review_timeline"]}, {"update_id": "ktu_009_export", "segment_id": "seg_009", "title": "导出 Markdown / JSON 作为可交接 artifact", "timeline_ref": "01:09-01:14", "active_update_ids": ["ktu_001_goal", "ktu_002_embedding", "ktu_003_vector_db", "ktu_004_latency", "ktu_005_glossary", "ktu_006_partial_final", "ktu_007_translation_fallback", "ktu_008_review_timeline", "ktu_009_export"]}, {"update_id": "ktu_010_proof_boundary", "segment_id": "seg_010", "title": "先证明 workflow，再接真实 ASR 或会议平台", "timeline_ref": "01:19-01:24", "active_update_ids": ["ktu_001_goal", "ktu_002_embedding", "ktu_003_vector_db", "ktu_004_latency", "ktu_005_glossary", "ktu_006_partial_final", "ktu_007_translation_fallback", "ktu_008_review_timeline", "ktu_009_export", "ktu_010_proof_boundary"]}]};
+    const svg = document.getElementById("treeSvg");
+    const subtitle = document.getElementById("subtitle");
+    const range = document.getElementById("stepRange");
+    const panel = document.getElementById("treePanel");
+    let current = 0;
+    let timer = null;
+    const manualBranchExpanded = new Set();
+    const manualBranchCollapsed = new Set();
+    range.max = String(data.snapshots.length - 1);
+
+    function esc(value) {
+      return String(value || "").replace(/[&<>]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[ch]));
+    }
+    function line(x1, y1, x2, y2, cls, bend = 0) {
+      const c1x = x1 + Math.max(24, Math.abs(x2 - x1) * 0.36);
+      const c2x = x2 - Math.max(18, Math.abs(x2 - x1) * 0.18);
+      return `<path class="${cls}" d="M ${x1} ${y1} C ${c1x} ${y1 - bend}, ${c2x} ${y2 + bend}, ${x2} ${y2}" />`;
+    }
+    function text(x, y, value, cls, anchor = "start") {
+      return `<text class="${cls}" x="${x}" y="${y}" text-anchor="${anchor}">${esc(value)}</text>`;
+    }
+    function fitText(value, maxChars) {
+      const raw = String(value || "");
+      return raw.length > maxChars ? raw.slice(0, Math.max(0, maxChars - 1)) + "…" : raw;
+    }
+    function branchLabel(x, y, value, cls) {
+      return `<text class="${cls}" x="${x}" y="${y}">${esc(fitText(value, 22))}</text>`;
+    }
+    function textBlock(x, y, value, cls, maxChars, anchor = "start", lineHeight = 13, limit = 2) {
+      const raw = String(value || "");
+      const lines = [];
+      for (let offset = 0; offset < raw.length && lines.length < limit; offset += maxChars) {
+        let line = raw.slice(offset, offset + maxChars);
+        if (offset + maxChars < raw.length && lines.length === limit - 1) line = line.slice(0, Math.max(0, line.length - 1)) + "…";
+        lines.push(line);
+      }
+      if (!lines.length) lines.push("");
+      const tspans = lines.map((line, idx) =>
+        `<tspan x="${x}" dy="${idx === 0 ? 0 : lineHeight}">${esc(line)}</tspan>`
+      ).join("");
+      return `<text class="${cls}" x="${x}" y="${y}" text-anchor="${anchor}">${tspans}</text>`;
+    }
+    function render(index) {
+      current = Math.max(0, Math.min(index, data.snapshots.length - 1));
+      const snapshot = data.snapshots[current];
+      const active = new Set(snapshot.active_update_ids);
+      const activeBranch = data.branches.find(branch =>
+        branch.updates.some(update => update.update_id === snapshot.update_id)
+      );
+      const currentBranchId = activeBranch ? activeBranch.node_id : "";
+      const trunkX = 34;
+      const baseY = 850;
+      const topY = 80;
+      const branchGap = 130;
+      let html = "";
+      html += `<path class="root-line" d="M 6 ${baseY + 18} C 42 ${baseY + 4}, 92 ${baseY + 4}, 132 ${baseY + 18}" />`;
+      html += `<path class="soil-line" d="M 10 ${baseY + 30} C 58 ${baseY + 12}, 146 ${baseY + 12}, 228 ${baseY + 30}" />`;
+      html += `<path class="soil-line" d="M 18 ${baseY + 48} C 76 ${baseY + 30}, 154 ${baseY + 34}, 236 ${baseY + 48}" />`;
+      html += `<path class="trunk" d="M ${trunkX} ${baseY} C ${trunkX - 14} 670, ${trunkX + 12} 350, ${trunkX + 4} ${topY}" />`;
+      html += textBlock(58, baseY + 66, data.root_title, "soil-label", 24, "start", 15, 2);
+      html += text(130, topY - 22, `${current + 1}/${data.snapshots.length} ${snapshot.timeline_ref}`, "growth-label");
+
+      data.branches.forEach((branch, branchIndex) => {
+        const y = baseY - 92 - branchIndex * branchGap;
+        const branchX = 190;
+        const labelX = 54;
+        const activeUpdates = branch.updates.filter(update => active.has(update.update_id));
+        const branchHasContent = activeUpdates.length > 0;
+        const isCurrentBranch = branch.node_id === currentBranchId;
+        const isBranchExpanded = branchHasContent && (
+          manualBranchExpanded.has(branch.node_id) ||
+          (isCurrentBranch && !manualBranchCollapsed.has(branch.node_id))
+        );
+        const branchClass = `${isCurrentBranch ? " current-branch" : ""}${isBranchExpanded ? "" : " collapsed-branch"}`;
+        html += `<g class="branch-group${branchClass}" data-branch-id="${esc(branch.node_id)}">`;
+        html += line(trunkX + 4, y + 18, branchX, y - 10, "branch-line", 4);
+        html += `<circle class="seed-dot" cx="${branchX}" cy="${y - 16}" r="3.5" />`;
+        html += text(150, y - 38, `${isBranchExpanded ? "[-]" : "[+] Branch"} ${branchIndex + 1}`, "branch-index");
+        html += branchLabel(labelX, y - 22, branch.title, "branch-on-line");
+
+        activeUpdates.forEach((update, updateIndex) => {
+          const leafY = y - 50 - updateIndex * 42;
+          const leafX = 176 - updateIndex * 10;
+          const leafLabelX = 62;
+          html += `<g class="leaf-cluster active-grow">`;
+          html += line(branchX, y - 16, leafX, leafY, "twig-line", 3);
+          html += `<circle class="leaf-dot" cx="${leafX}" cy="${leafY}" r="4.2" />`;
+          html += text(leafLabelX, leafY - 10, fitText(update.title, 20), "leaf-label");
+          update.tertiary_topics.forEach((topic, topicIndex) => {
+            html += text(leafLabelX + 8, leafY + 8 + topicIndex * 12, fitText(`- ${topic}`, 18), "tertiary-label");
+          });
+          html += `</g>`;
+        });
+        html += `</g>`;
+      });
+      svg.innerHTML = html;
+      subtitle.textContent = current === 0
+        ? "准备阶段：完整大标题枝干已经出现，等待视频进度长出叶节点"
+        : `${snapshot.timeline_ref}：${snapshot.title}`;
+      range.value = String(current);
+      svg.querySelectorAll(".branch-group").forEach(node => {
+        node.addEventListener("click", event => {
+          event.stopPropagation();
+          const branchId = node.getAttribute("data-branch-id");
+          if (!branchId) return;
+          const isCollapsed = node.classList.contains("collapsed-branch");
+          if (isCollapsed) {
+            manualBranchCollapsed.delete(branchId);
+            manualBranchExpanded.add(branchId);
+          } else {
+            manualBranchExpanded.delete(branchId);
+            manualBranchCollapsed.add(branchId);
+          }
+          render(current);
+        });
+      });
+    }
+
+    document.getElementById("resetBtn").onclick = () => render(0);
+    document.getElementById("prevBtn").onclick = () => render(current - 1);
+    document.getElementById("nextBtn").onclick = () => render(current + 1);
+    document.getElementById("playBtn").onclick = () => {
+      if (timer) { clearInterval(timer); timer = null; return; }
+      timer = setInterval(() => {
+        if (current >= data.snapshots.length - 1) { clearInterval(timer); timer = null; }
+        else render(current + 1);
+      }, 1300);
+    };
+    range.oninput = event => render(Number(event.target.value));
+
+    let dragging = false;
+    let dx = 0;
+    let dy = 0;
+    panel.addEventListener("mousedown", event => {
+      dragging = true;
+      const rect = panel.getBoundingClientRect();
+      dx = event.clientX - rect.left;
+      dy = event.clientY - rect.top;
+    });
+    window.addEventListener("mousemove", event => {
+      if (!dragging) return;
+      panel.style.left = `${event.clientX - dx}px`;
+      panel.style.top = `${event.clientY - dy}px`;
+      panel.style.right = "auto";
+      panel.style.bottom = "auto";
+    });
+    window.addEventListener("mouseup", () => { dragging = false; });
+    render(0);
+  </script>
+</body>
+</html>

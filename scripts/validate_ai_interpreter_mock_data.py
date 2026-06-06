@@ -19,6 +19,7 @@ FILES = {
     "sample": DATA_DIR / "sample_stream.json",
     "glossary": DATA_DIR / "term_glossary.json",
     "timeline": DATA_DIR / "expected_timeline.json",
+    "knowledge_tree": DATA_DIR / "knowledge_tree.json",
     "fallback": DATA_DIR / "fallback_examples.json",
 }
 
@@ -191,6 +192,115 @@ def validate_fallback(fallback: dict, failures: list[str]) -> None:
             )
 
 
+def validate_knowledge_tree(
+    knowledge_tree: dict,
+    timeline: dict,
+    failures: list[str],
+) -> tuple[int, int]:
+    if knowledge_tree.get("object_type") != "KnowledgeTreeMock":
+        failures.append("knowledge_tree.json: object_type must be KnowledgeTreeMock")
+
+    initial_tree = knowledge_tree.get("initial_tree")
+    if not isinstance(initial_tree, dict):
+        failures.append("knowledge_tree.json: missing initial_tree")
+        return 0, 0
+
+    nodes = as_list(initial_tree.get("nodes"))
+    root_nodes = [node for node in nodes if node.get("level") == "root"]
+    branch_nodes = [node for node in nodes if node.get("level") == "branch"]
+    if len(root_nodes) != 1:
+        failures.append(
+            f"knowledge_tree.json: expected exactly one root node, got {len(root_nodes)}"
+        )
+    if len(branch_nodes) < 3:
+        failures.append(
+            f"knowledge_tree.json: expected at least 3 branch nodes, got {len(branch_nodes)}"
+        )
+
+    branch_ids = {
+        node.get("node_id")
+        for node in branch_nodes
+        if isinstance(node.get("node_id"), str)
+    }
+    timeline_segment_ids = {
+        item.get("segment", {}).get("segment_id")
+        for item in as_list(timeline.get("items"))
+        if isinstance(item, dict)
+    }
+
+    updates = as_list(knowledge_tree.get("updates"))
+    if not updates:
+        failures.append("knowledge_tree.json: expected at least one tree update")
+
+    for index, update in enumerate(updates):
+        if update.get("object_type") != "KnowledgeTreeUpdate":
+            failures.append(
+                f"knowledge_tree.json: update {index} must be KnowledgeTreeUpdate"
+            )
+        parent_id = update.get("parent_id")
+        if parent_id not in branch_ids:
+            failures.append(
+                f"knowledge_tree.json: update {index} parent_id does not match a branch"
+            )
+        if update.get("level") != "subtopic":
+            failures.append(f"knowledge_tree.json: update {index} must be a subtopic")
+        if not isinstance(update.get("title"), str) or not update.get("title"):
+            failures.append(f"knowledge_tree.json: update {index} missing title")
+        if not as_list(update.get("core_points")):
+            failures.append(f"knowledge_tree.json: update {index} missing core_points")
+
+        refs = as_list(update.get("timeline_refs"))
+        if not refs:
+            failures.append(f"knowledge_tree.json: update {index} missing timeline_refs")
+        for ref in refs:
+            if ref not in timeline_segment_ids:
+                failures.append(
+                    f"knowledge_tree.json: update {index} references unknown segment {ref}"
+                )
+
+        quotes = as_list(update.get("source_quotes"))
+        if not quotes:
+            failures.append(f"knowledge_tree.json: update {index} missing source_quotes")
+        for quote_index, quote in enumerate(quotes):
+            if not isinstance(quote, dict):
+                failures.append(
+                    f"knowledge_tree.json: update {index} quote {quote_index} is invalid"
+                )
+                continue
+            if not isinstance(quote.get("text"), str) or not quote.get("text"):
+                failures.append(
+                    f"knowledge_tree.json: update {index} quote {quote_index} missing text"
+                )
+            if quote.get("segment_id") not in timeline_segment_ids:
+                failures.append(
+                    "knowledge_tree.json: update "
+                    f"{index} quote {quote_index} references unknown segment"
+                )
+
+    display_contract = knowledge_tree.get("display_contract")
+    if not isinstance(display_contract, dict):
+        failures.append("knowledge_tree.json: missing display_contract")
+    else:
+        modes = set(as_list(display_contract.get("display_modes")))
+        required_modes = {"architecture_graph", "growing_code_tree", "living_text_tree"}
+        if not required_modes.issubset(modes):
+            failures.append(
+                "knowledge_tree.json: display_modes must include "
+                "architecture_graph, growing_code_tree, and living_text_tree"
+            )
+        behavior = display_contract.get("desktop_behavior")
+        if not isinstance(behavior, dict):
+            failures.append("knowledge_tree.json: missing desktop_behavior")
+        else:
+            for field in ("floating", "draggable"):
+                if behavior.get(field) is not True:
+                    failures.append(
+                        f"knowledge_tree.json: desktop_behavior.{field} must be true"
+                    )
+
+    return len(branch_nodes), len(updates)
+
+
 def main() -> int:
     failures: list[str] = []
     loaded = {name: load_json(path, failures) for name, path in FILES.items()}
@@ -202,6 +312,11 @@ def main() -> int:
     partials, finals = validate_sample(loaded["sample"], failures)  # type: ignore[arg-type]
     terms = validate_glossary(loaded["glossary"], failures)  # type: ignore[arg-type]
     timeline_count = validate_timeline(loaded["timeline"], len(finals), failures)  # type: ignore[arg-type]
+    branch_count, knowledge_updates = validate_knowledge_tree(  # type: ignore[arg-type]
+        loaded["knowledge_tree"],
+        loaded["timeline"],
+        failures,
+    )
     validate_fallback(loaded["fallback"], failures)  # type: ignore[arg-type]
 
     if failures:
@@ -210,7 +325,8 @@ def main() -> int:
         print(
             "Summary: "
             f"partials={len(partials)}, finals={len(finals)}, "
-            f"terms={len(terms)}, timeline_items={timeline_count}"
+            f"terms={len(terms)}, timeline_items={timeline_count}, "
+            f"knowledge_branches={branch_count}, knowledge_updates={knowledge_updates}"
         )
         return 1
 
@@ -219,6 +335,7 @@ def main() -> int:
         "Summary: "
         f"partials={len(partials)}, finals={len(finals)}, "
         f"terms={len(terms)}, timeline_items={timeline_count}, "
+        f"knowledge_branches={branch_count}, knowledge_updates={knowledge_updates}, "
         "fallbacks=asr/translation/export/glossary"
     )
     return 0
