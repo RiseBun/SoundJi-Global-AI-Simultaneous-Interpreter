@@ -1,4 +1,4 @@
-"""Generate local SoundJi P1 review artifacts."""
+"""Generate local SoundJi AI interpreter review artifacts."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ from typing import Any
 from .data import OUTPUT_DIR, load_fixture, load_json, sample_stream
 from .knowledge_tree import build_knowledge_tree_render_model
 from .knowledge_tree_ui import write_growing_code_tree_html, write_living_text_tree_html
+from .revision_demo import parse_revision_demo_event, write_revision_demo_html
 from .timeline_ui import write_timeline_review_html
 
 
@@ -58,4 +59,16 @@ def artifact_manifest(paths: dict[str, Path]) -> str:
         ensure_ascii=False,
         indent=2,
     )
+
+
+def generate_p2_revision_demo_artifact(output_dir: Path = OUTPUT_DIR) -> dict[str, Path]:
+    fallback = load_fixture("fallback_examples.json")
+    timeline = load_fixture("expected_timeline.json")
+    event = parse_revision_demo_event(fallback, timeline)
+    return {
+        "revision_demo": write_revision_demo_html(
+            output_dir / "revision_demo.html",
+            event,
+        )
+    }
 
