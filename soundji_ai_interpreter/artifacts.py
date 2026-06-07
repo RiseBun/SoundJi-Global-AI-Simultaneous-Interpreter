@@ -163,12 +163,13 @@ def build_soundji_demo_html(
     )
     fallback_rows = "\n".join(
         f"""
-        <li>
-          <strong>{escape(str(mode.get("mode_id", "fallback")))}</strong>
+        <li class="fallback-item">
+          <strong>降级路径 {index:02d}</strong>
+          <small>{escape(str(mode.get("mode_id", "fallback")))}</small>
           <span>{escape(str(mode.get("visible_notice", mode.get("reason", ""))))}</span>
         </li>
         """
-        for mode in fallback_modes
+        for index, mode in enumerate(fallback_modes, start=1)
     )
     return f"""<!doctype html>
 <html lang="zh-CN">
@@ -297,6 +298,7 @@ def build_soundji_demo_html(
       gap: 18px;
       align-items: start;
     }}
+    .workspace > * {{ min-width: 0; }}
     .main-flow {{ display: grid; gap: 18px; }}
     .preview {{
       background: var(--panel-solid);
@@ -563,13 +565,24 @@ def build_soundji_demo_html(
       border: 0;
       background: var(--panel-solid);
     }}
-    aside {{ display: grid; gap: 14px; }}
+    aside {{
+      display: grid;
+      gap: 14px;
+      min-width: 0;
+    }}
     .section {{
       background: var(--panel);
       border: 1px solid var(--line);
       border-radius: 8px;
       padding: 14px;
       box-shadow: 0 16px 34px rgba(30, 24, 15, .12);
+      min-width: 0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+    }}
+    .section h2 {{
+      max-width: 100%;
+      overflow-wrap: anywhere;
     }}
     .term-grid {{
       display: grid;
@@ -632,6 +645,7 @@ def build_soundji_demo_html(
       border-radius: 8px;
       text-decoration: none;
       background: rgba(255,255,255,.5);
+      min-width: 0;
     }}
     .artifact-link:hover {{ border-color: rgba(216, 103, 42, .5); background: #fff6e7; }}
     .artifact-link span {{ font-weight: 700; }}
@@ -639,30 +653,64 @@ def build_soundji_demo_html(
     [data-artifact-role="primary"] {{ border-left: 4px solid var(--signal); }}
     [data-artifact-role="optional"] {{ border-left: 4px solid #9d9181; }}
     .signal-bubbles {{
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
       margin-top: 10px;
+      min-width: 0;
     }}
     .signal-bubble {{
+      display: grid;
+      place-items: center;
+      min-height: 34px;
       border: 1px solid rgba(35, 112, 199, .22);
-      border-radius: 999px;
-      padding: 7px 10px;
+      border-radius: 8px;
+      padding: 7px 8px;
       background: rgba(35, 112, 199, .09);
       color: #214e83;
       font-size: 12px;
-      line-height: 1;
-      white-space: nowrap;
+      line-height: 1.25;
+      text-align: center;
+      min-width: 0;
+      max-width: 100%;
+      white-space: normal;
+      overflow-wrap: anywhere;
     }}
     .optional-note {{
       margin: 0;
       color: var(--muted);
       font-size: 13px;
       line-height: 1.5;
+      max-width: 100%;
+      overflow-wrap: anywhere;
     }}
     ul {{ margin: 10px 0 0; padding-left: 18px; }}
-    li {{ margin: 8px 0; line-height: 1.45; }}
-    li span {{ display: block; color: var(--muted); font-size: 12px; }}
+    li {{
+      margin: 8px 0;
+      line-height: 1.45;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }}
+    li span {{ display: block; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }}
+    .fallback-item {{
+      padding: 9px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,.42);
+      list-style-position: outside;
+    }}
+    .fallback-item strong,
+    .fallback-item small {{
+      display: block;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }}
+    .fallback-item small {{
+      margin: 2px 0 5px;
+      color: #8a7d70;
+      font-size: 11px;
+      line-height: 1.35;
+    }}
     @media (max-width: 1000px) {{
       header {{ grid-template-columns: 1fr; }}
       .top-actions {{ justify-content: flex-start; }}
@@ -684,6 +732,7 @@ def build_soundji_demo_html(
       .ai-rail {{ grid-template-columns: 1fr; }}
       .video-core {{ top: 305px; }}
       .term-grid {{ grid-template-columns: 1fr; }}
+      .signal-bubbles {{ grid-template-columns: 1fr; }}
       .caption-line {{ grid-template-columns: 1fr; gap: 3px; }}
     }}
   </style>

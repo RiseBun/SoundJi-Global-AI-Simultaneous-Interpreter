@@ -25,6 +25,15 @@ def test_p1_demo_runthrough_covers_timeline_knowledge_tree_export_and_fallback(t
         page.locator("#organicStructureMode").click()
         assert stage.get_attribute("data-tree-mode") == "living"
         assert page.locator("#organicStructureMode").get_attribute("aria-selected") == "true"
+        sidebar_box = page.locator("aside").bounding_box()
+        assert sidebar_box is not None
+        sidebar_right = sidebar_box["x"] + sidebar_box["width"]
+        sections = page.locator("aside .section")
+        for index in range(sections.count()):
+            section_box = sections.nth(index).bounding_box()
+            assert section_box is not None
+            assert section_box["x"] >= sidebar_box["x"] - 1
+            assert section_box["x"] + section_box["width"] <= sidebar_right + 1
 
         page.goto(paths["timeline_review"].as_uri())
         assert page.locator(".timeline-row").count() == 10
