@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from html import escape
 from pathlib import Path
 from typing import Any
 
@@ -34,7 +35,7 @@ def generate_p1_ui_artifacts(output_dir: Path = OUTPUT_DIR) -> dict[str, Path]:
         else None
     )
 
-    return {
+    paths = {
         "timeline_review": write_timeline_review_html(
             output_dir / "timeline_review.html",
             timeline,
@@ -52,6 +53,792 @@ def generate_p1_ui_artifacts(output_dir: Path = OUTPUT_DIR) -> dict[str, Path]:
             model,
         ),
     }
+    paths["soundji_demo"] = write_soundji_demo_html(
+        output_dir / "soundji_demo.html",
+        sample,
+        timeline,
+        fallback,
+    )
+    return paths
+
+
+def build_soundji_demo_html(
+    sample_stream: dict[str, Any],
+    timeline: dict[str, Any],
+    fallback: dict[str, Any],
+) -> str:
+    items = [
+        item
+        for item in timeline.get("items", [])
+        if isinstance(item, dict)
+    ]
+    fallback_modes = [
+        item
+        for item in fallback.get("fallback_modes", [])
+        if isinstance(item, dict)
+    ]
+    title = escape(str(sample_stream.get("title", "SoundJi Demo")))
+    final_count = len(items)
+    term_hit_count = sum(len(item.get("term_hits", [])) for item in items)
+    fallback_count = len(fallback_modes)
+    active_item = items[0] if items else {}
+    active_segment = active_item.get("segment", {}) if isinstance(active_item, dict) else {}
+    active_translation = active_item.get("translation", {}) if isinstance(active_item, dict) else {}
+    active_source = escape(str(active_segment.get("source_text", "Waiting for the first final segment.")))
+    active_target = escape(str(active_translation.get("target_text", "等待第一条稳定译文。")))
+    active_status = escape(str(active_translation.get("status", "ready")))
+    term_chips: list[str] = []
+    seen_terms: set[str] = set()
+    for item in items:
+        for hit in item.get("term_hits", []):
+            source_text = str(hit.get("source_text", "")).strip()
+            target_text = str(hit.get("target_text", "")).strip()
+            if source_text and source_text not in seen_terms:
+                seen_terms.add(source_text)
+                term_chips.append(
+                    f'<span class="term-chip"><b>{escape(source_text)}</b><small>{escape(target_text)}</small></span>'
+                )
+            if len(term_chips) >= 8:
+                break
+        if len(term_chips) >= 8:
+            break
+    term_chip_markup = "\n".join(term_chips)
+    timeline_rows = "\n".join(
+        f"""
+        <a class="live-row" href="timeline_review.html#timeline" aria-label="打开时间轴片段">
+          <time>{escape(str(item.get("item_id", "timeline")))}</time>
+          <span>{escape(str(item.get("segment", {}).get("source_text", "")))}</span>
+          <strong>{escape(str(item.get("translation", {}).get("target_text", "")))}</strong>
+        </a>
+        """
+        for item in items[:4]
+    )
+    artifacts = [
+        {
+            "name": "双语复盘时间轴",
+            "path": "timeline_review.html",
+            "role": "primary",
+            "description": "主复盘界面，包含双语时间轴、术语命中、延迟状态、降级提示和导出预览。",
+        },
+        {
+            "name": "层级结构树",
+            "path": "knowledge_tree_growing_code_tree.html",
+            "role": "primary",
+            "description": "主知识树视图：用目录层级承载课程结构，随稳定字幕逐步补充小标题。",
+        },
+        {
+            "name": "生长结构树",
+            "path": "knowledge_tree_living_text_tree.html",
+            "role": "optional",
+            "description": "可选知识树视图：用真树生长形态承载课程结构，适合全屏黑边展示实验。",
+        },
+        {
+            "name": "回修演示",
+            "path": "revision_demo.html",
+            "role": "optional",
+            "description": "P2 演示专用的 before/after 回修样例，不属于主时间轴。",
+        },
+        {
+            "name": "复盘学习指南",
+            "path": "review_study_guide.json",
+            "role": "optional",
+            "description": "确定性生成的 P2 学习指南 JSON，不代表真实 LLM 输出。",
+        },
+        {
+            "name": "P2 边界清单",
+            "path": "p2_optional_manifest.json",
+            "role": "optional",
+            "description": "用于标记 optional artifact 是 demo-only 的边界文件。",
+        },
+    ]
+    artifact_links = "\n".join(
+        f"""
+        <a class="artifact-link" data-artifact-role="{escape(artifact["role"])}"
+           data-artifact-path="{escape(artifact["path"])}" href="{escape(artifact["path"])}">
+          <span>{escape(artifact["name"])}</span>
+          <small>{escape(artifact["description"])}</small>
+        </a>
+        """
+        for artifact in artifacts
+    )
+    fallback_rows = "\n".join(
+        f"""
+        <li>
+          <strong>{escape(str(mode.get("mode_id", "fallback")))}</strong>
+          <span>{escape(str(mode.get("visible_notice", mode.get("reason", ""))))}</span>
+        </li>
+        """
+        for mode in fallback_modes
+    )
+    return f"""<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SoundJi AI Simultaneous Interpreter</title>
+  <style>
+    * {{ box-sizing: border-box; }}
+    :root {{
+      --ink: #161514;
+      --paper: #f5f0e7;
+      --panel: rgba(255, 251, 241, .92);
+      --panel-solid: #fffaf0;
+      --line: rgba(38, 34, 27, .16);
+      --carbon: #0d0f0d;
+      --carbon-2: #181b18;
+      --copper: #d8672a;
+      --signal: #09a779;
+      --signal-soft: #dff6ed;
+      --lime: #c7e451;
+      --blue: #2370c7;
+      --rose: #cc3761;
+      --muted: #69645b;
+      --shadow: 0 22px 60px rgba(30, 24, 15, .18);
+    }}
+    body {{
+      margin: 0;
+      min-width: 320px;
+      background:
+        linear-gradient(90deg, rgba(13, 15, 13, .08) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(13, 15, 13, .06) 1px, transparent 1px),
+        var(--paper);
+      background-size: 44px 44px;
+      color: var(--ink);
+      font-family: Inter, Arial, "Microsoft YaHei UI", sans-serif;
+    }}
+    a {{ color: inherit; }}
+    .shell {{ max-width: 1540px; margin: 0 auto; padding: 18px; }}
+    header {{
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: center;
+      padding: 14px 0 18px;
+    }}
+    .brand-lockup {{
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      min-width: 0;
+    }}
+    .brand-mark {{
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: var(--carbon);
+      color: var(--lime);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.12), 0 12px 26px rgba(13,15,13,.22);
+      font-weight: 900;
+      letter-spacing: 0;
+    }}
+    h1 {{ margin: 0; font-size: 30px; line-height: 1.05; letter-spacing: 0; }}
+    .subtitle {{ margin: 6px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; }}
+    .top-actions {{
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }}
+    .status-pill {{
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0 12px;
+      background: rgba(255,255,255,.54);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }}
+    .status-pill.live::before {{
+      content: "";
+      width: 8px;
+      height: 8px;
+      margin-right: 8px;
+      border-radius: 999px;
+      background: var(--signal);
+      box-shadow: 0 0 0 5px rgba(9, 167, 121, .15);
+    }}
+    .metric-strip {{
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }}
+    .metric {{
+      position: relative;
+      overflow: hidden;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px 14px;
+      min-width: 0;
+    }}
+    .metric::after {{
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 3px;
+      background: var(--metric-color, var(--signal));
+    }}
+    .metric span {{ display: block; color: var(--muted); font-size: 12px; font-weight: 700; }}
+    .metric strong {{ display: block; margin-top: 2px; font-size: 26px; line-height: 1; }}
+    .metric:nth-child(2) {{ --metric-color: var(--copper); }}
+    .metric:nth-child(3) {{ --metric-color: var(--blue); }}
+    .workspace {{
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(330px, 0.34fr);
+      gap: 18px;
+      align-items: start;
+    }}
+    .main-flow {{ display: grid; gap: 18px; }}
+    .preview {{
+      background: var(--panel-solid);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }}
+    .preview h2, .section h2 {{ margin: 0; font-size: 15px; letter-spacing: 0; }}
+    .preview-head {{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,.42);
+    }}
+    .stage-card {{
+      background: var(--carbon);
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 30px 80px rgba(13, 15, 13, .36);
+      color: #f8f1df;
+    }}
+    .stage-head {{
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      padding: 14px;
+      border-bottom: 1px solid rgba(255,255,255,.12);
+      background:
+        linear-gradient(90deg, rgba(9, 167, 121, .13), transparent 38%),
+        #11140f;
+    }}
+    .stage-title {{
+      display: grid;
+      gap: 3px;
+    }}
+    .stage-title h2 {{ margin: 0; font-size: 18px; }}
+    .stage-title p {{ margin: 0; color: rgba(248, 241, 223, .64); font-size: 12px; line-height: 1.45; }}
+    .mode-switch {{
+      display: inline-flex;
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+    }}
+    .mode-switch button {{
+      min-height: 32px;
+      border: 0;
+      border-radius: 999px;
+      padding: 0 12px;
+      background: transparent;
+      color: rgba(248, 241, 223, .68);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 800;
+    }}
+    .mode-switch button[aria-selected="true"] {{
+      background: var(--lime);
+      color: #151711;
+      box-shadow: 0 8px 24px rgba(199, 228, 81, .18);
+    }}
+    .video-stage {{
+      position: relative;
+      min-height: 650px;
+      background:
+        linear-gradient(90deg, #050604 0 17%, transparent 17% 83%, #050604 83% 100%),
+        radial-gradient(circle at 50% 42%, rgba(216, 103, 42, .18), transparent 28%),
+        #11140f;
+    }}
+    .video-core {{
+      position: absolute;
+      left: 17%;
+      right: 17%;
+      top: 20px;
+      bottom: 20px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      color: rgba(255,255,255,.86);
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 8px;
+      overflow: hidden;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255,255,255,.04) 1px, transparent 1px),
+        #171b18;
+      background-size: 28px 28px;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.28);
+      font-family: Consolas, "Cascadia Mono", monospace;
+      z-index: 1;
+    }}
+    .video-topbar {{
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 13px;
+      border-bottom: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.22);
+      font-size: 12px;
+      color: rgba(248, 241, 223, .68);
+    }}
+    .speaker-scene {{
+      display: grid;
+      place-items: center;
+      min-height: 300px;
+      padding: 28px;
+      text-align: center;
+    }}
+    .speaker-avatar {{
+      width: min(340px, 78%);
+      aspect-ratio: 16 / 9;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,.12);
+      background:
+        linear-gradient(135deg, rgba(9, 167, 121, .25), transparent 34%),
+        linear-gradient(225deg, rgba(216, 103, 42, .25), transparent 36%),
+        #22251f;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 24px 58px rgba(0,0,0,.36);
+    }}
+    .speaker-avatar strong {{
+      display: block;
+      font-size: 22px;
+      color: rgba(248,241,223,.84);
+    }}
+    .speaker-avatar span {{
+      display: block;
+      margin-top: 8px;
+      color: rgba(248,241,223,.58);
+      font-size: 13px;
+    }}
+    .caption-deck {{
+      display: grid;
+      gap: 8px;
+      padding: 12px;
+      border-top: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.42);
+    }}
+    .caption-line {{
+      display: grid;
+      grid-template-columns: 76px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      line-height: 1.42;
+    }}
+    .caption-line b {{
+      color: var(--lime);
+      font-size: 11px;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }}
+    .caption-line span {{
+      color: rgba(255,255,255,.9);
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }}
+    .caption-line.cn span {{ color: #ffe0c2; font-size: 15px; }}
+    .ai-rail {{
+      position: absolute;
+      right: 18px;
+      top: 20px;
+      width: min(240px, 28%);
+      z-index: 3;
+      display: grid;
+      gap: 10px;
+    }}
+    .ai-panel {{
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 8px;
+      padding: 12px;
+      background: rgba(13, 15, 13, .74);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 20px 48px rgba(0,0,0,.3);
+    }}
+    .ai-panel h3 {{
+      margin: 0 0 8px;
+      font-size: 13px;
+      color: var(--lime);
+    }}
+    .voice-meter {{
+      display: grid;
+      grid-template-columns: repeat(14, 1fr);
+      gap: 3px;
+      align-items: end;
+      height: 52px;
+    }}
+    .voice-meter i {{
+      display: block;
+      min-height: 8px;
+      border-radius: 999px;
+      background: var(--signal);
+      opacity: .86;
+    }}
+    .voice-meter i:nth-child(2n) {{ height: 34px; background: var(--lime); }}
+    .voice-meter i:nth-child(3n) {{ height: 48px; background: var(--copper); }}
+    .voice-meter i:nth-child(5n) {{ height: 22px; }}
+    .pipeline-list {{
+      display: grid;
+      gap: 7px;
+      margin-top: 8px;
+    }}
+    .pipeline-list span {{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      color: rgba(248,241,223,.76);
+      font-size: 12px;
+    }}
+    .pipeline-list span::after {{
+      content: attr(data-state);
+      color: var(--signal);
+      font-weight: 800;
+    }}
+    .tree-rail-label {{
+      position: absolute;
+      left: 16px;
+      top: 22px;
+      z-index: 4;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      color: rgba(255,255,255,.42);
+      font-size: 12px;
+      letter-spacing: .08em;
+    }}
+    .tree-variant-frame {{
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      background: transparent;
+      z-index: 2;
+    }}
+    .tree-variant-frame[data-mode="living"] {{ display: none; }}
+    .stage-card[data-tree-mode="living"] .tree-variant-frame[data-mode="growing"] {{ display: none; }}
+    .stage-card[data-tree-mode="living"] .tree-variant-frame[data-mode="living"] {{ display: block; }}
+    .badge {{
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 2px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--ink);
+      background: rgba(255,255,255,.5);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+      text-decoration: none;
+    }}
+    iframe {{
+      display: block;
+      width: 100%;
+      height: 580px;
+      border: 0;
+      background: var(--panel-solid);
+    }}
+    aside {{ display: grid; gap: 14px; }}
+    .section {{
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      box-shadow: 0 16px 34px rgba(30, 24, 15, .12);
+    }}
+    .term-grid {{
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }}
+    .term-chip {{
+      min-height: 54px;
+      display: grid;
+      align-content: center;
+      gap: 3px;
+      padding: 9px 10px;
+      border: 1px solid rgba(9, 167, 121, .2);
+      border-radius: 8px;
+      background: var(--signal-soft);
+    }}
+    .term-chip b {{ font-size: 13px; overflow-wrap: anywhere; }}
+    .term-chip small {{ color: #34594e; font-size: 11px; }}
+    .live-queue {{
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }}
+    .live-row {{
+      display: grid;
+      grid-template-columns: 74px minmax(0, 1fr);
+      gap: 8px 10px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,255,255,.48);
+      text-decoration: none;
+    }}
+    .live-row time {{
+      grid-row: span 2;
+      color: var(--copper);
+      font-size: 11px;
+      font-weight: 900;
+    }}
+    .live-row span, .live-row strong {{
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }}
+    .live-row span {{
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }}
+    .live-row strong {{
+      font-size: 12px;
+      line-height: 1.35;
+    }}
+    .artifact-list {{ display: grid; gap: 8px; margin-top: 10px; }}
+    .artifact-link {{
+      display: grid;
+      gap: 4px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      text-decoration: none;
+      background: rgba(255,255,255,.5);
+    }}
+    .artifact-link:hover {{ border-color: rgba(216, 103, 42, .5); background: #fff6e7; }}
+    .artifact-link span {{ font-weight: 700; }}
+    .artifact-link small {{ color: var(--muted); font-size: 12px; line-height: 1.45; }}
+    [data-artifact-role="primary"] {{ border-left: 4px solid var(--signal); }}
+    [data-artifact-role="optional"] {{ border-left: 4px solid #9d9181; }}
+    .signal-bubbles {{
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }}
+    .signal-bubble {{
+      border: 1px solid rgba(35, 112, 199, .22);
+      border-radius: 999px;
+      padding: 7px 10px;
+      background: rgba(35, 112, 199, .09);
+      color: #214e83;
+      font-size: 12px;
+      line-height: 1;
+      white-space: nowrap;
+    }}
+    .optional-note {{
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }}
+    ul {{ margin: 10px 0 0; padding-left: 18px; }}
+    li {{ margin: 8px 0; line-height: 1.45; }}
+    li span {{ display: block; color: var(--muted); font-size: 12px; }}
+    @media (max-width: 1000px) {{
+      header {{ grid-template-columns: 1fr; }}
+      .top-actions {{ justify-content: flex-start; }}
+      .metric-strip {{ grid-template-columns: 1fr; }}
+      .workspace {{ grid-template-columns: 1fr; }}
+      .stage-head {{ grid-template-columns: 1fr; }}
+      .video-stage {{ min-height: 600px; }}
+      .video-core {{ left: 10px; right: 10px; top: 210px; bottom: 14px; }}
+      .ai-rail {{ left: 10px; right: 10px; top: 12px; width: auto; grid-template-columns: 1fr 1fr; }}
+      .tree-rail-label {{ display: none; }}
+      iframe {{ height: 460px; }}
+    }}
+    @media (max-width: 620px) {{
+      .shell {{ padding: 12px; }}
+      h1 {{ font-size: 24px; }}
+      .brand-mark {{ width: 42px; height: 42px; }}
+      .mode-switch {{ width: 100%; }}
+      .mode-switch button {{ flex: 1; }}
+      .ai-rail {{ grid-template-columns: 1fr; }}
+      .video-core {{ top: 305px; }}
+      .term-grid {{ grid-template-columns: 1fr; }}
+      .caption-line {{ grid-template-columns: 1fr; gap: 3px; }}
+    }}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header>
+      <div class="brand-lockup">
+        <div class="brand-mark">SJ</div>
+        <div>
+          <h1>SoundJi AI Simultaneous Interpreter</h1>
+          <p class="subtitle">{title} · 英文技术分享的实时字幕、术语约束、中文传译和会后复盘工作台。</p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <span class="status-pill live">正在传译</span>
+        <span class="status-pill">英译中</span>
+        <a class="status-pill" href="timeline_review.html">打开复盘</a>
+      </div>
+    </header>
+    <section class="metric-strip" aria-label="SoundJi proof metrics">
+      <div class="metric"><span>稳定字幕</span><strong>{final_count}</strong></div>
+      <div class="metric"><span>术语命中</span><strong>{term_hit_count}</strong></div>
+      <div class="metric"><span>降级模式</span><strong>{fallback_count}</strong></div>
+    </section>
+    <section class="workspace">
+      <div class="main-flow">
+        <section class="stage-card" id="knowledgeTreeStage" data-primary-artifact="knowledge_tree_growing" data-tree-mode="growing">
+          <div class="stage-head">
+            <div class="stage-title">
+              <h2>同声传译工作台</h2>
+              <p>识别稳定态、术语约束、中文传译和复盘证据在同一舞台内联动。</p>
+            </div>
+            <div class="mode-switch" role="tablist" aria-label="知识树结构类型">
+              <button id="outlineStructureMode" type="button" role="tab" aria-selected="true" data-tree-mode-button="growing">层级结构</button>
+              <button id="organicStructureMode" type="button" role="tab" aria-selected="false" data-tree-mode-button="living">生长结构</button>
+            </div>
+          </div>
+          <div class="video-stage">
+            <div class="tree-rail-label">知识结构树</div>
+            <div class="video-core">
+              <div class="video-topbar">
+                <span>讲者视频 · 技术课程</span>
+                <span>译文状态：{active_status}</span>
+              </div>
+              <div class="speaker-scene">
+                <div class="speaker-avatar">
+                  <div>
+                    <strong>课程视频画面</strong>
+                    <span>AI 基础设施技术分享</span>
+                  </div>
+                </div>
+              </div>
+              <div class="caption-deck" aria-label="实时双语字幕">
+                <div class="caption-line en"><b>英文原文</b><span>{active_source}</span></div>
+                <div class="caption-line cn"><b>中文传译</b><span>{active_target}</span></div>
+              </div>
+            </div>
+            <div class="ai-rail" aria-label="传译 AI 信号栏">
+              <div class="ai-panel">
+                <h3>传译 AI</h3>
+                <div class="voice-meter" aria-hidden="true">
+                  <i style="height:18px"></i><i></i><i></i><i style="height:28px"></i><i></i><i style="height:42px"></i><i style="height:20px"></i><i></i><i style="height:36px"></i><i></i><i style="height:16px"></i><i style="height:44px"></i><i></i><i style="height:24px"></i>
+                </div>
+              </div>
+              <div class="ai-panel">
+                <h3>处理链路</h3>
+                <div class="pipeline-list">
+                  <span data-state="已锁定">术语表</span>
+                  <span data-state="稳定态">语音识别</span>
+                  <span data-state="已就绪">中文传译</span>
+                  <span data-state="可见">降级提示</span>
+                </div>
+              </div>
+            </div>
+            <iframe class="tree-variant-frame" data-mode="growing" title="SoundJi 层级结构知识树" src="knowledge_tree_growing_code_tree.html"></iframe>
+            <iframe class="tree-variant-frame" data-mode="living" title="SoundJi 生长结构知识树" src="knowledge_tree_living_text_tree.html"></iframe>
+          </div>
+        </section>
+        <section class="preview" data-primary-artifact="timeline_review">
+          <div class="preview-head">
+            <h2>主双语复盘时间轴</h2>
+            <a class="badge" href="timeline_review.html">打开完整页</a>
+          </div>
+          <iframe title="SoundJi timeline review" src="timeline_review.html"></iframe>
+        </section>
+      </div>
+      <aside>
+        <section class="section">
+          <h2>术语锁定</h2>
+          <div class="term-grid">
+            {term_chip_markup}
+          </div>
+        </section>
+        <section class="section">
+          <h2>实时片段队列</h2>
+          <div class="live-queue">
+            {timeline_rows}
+          </div>
+        </section>
+        <section class="section">
+          <h2>成果入口</h2>
+          <div class="artifact-list">
+            {artifact_links}
+          </div>
+        </section>
+        <section class="section" data-optional-artifact="knowledge_tree_living">
+          <h2>可选视图边界</h2>
+          <p class="optional-note">
+            生长结构树只是黑框浮层实验视图。主产品闭环以双语时间轴、术语命中、降级状态、导出预览和层级结构知识树为准。
+          </p>
+        </section>
+        <section class="section">
+          <h2>降级信号</h2>
+          <div class="signal-bubbles">
+            <span class="signal-bubble">识别降级</span>
+            <span class="signal-bubble">传译降级</span>
+            <span class="signal-bubble">导出复制路径</span>
+            <span class="signal-bubble">术语保护</span>
+          </div>
+          <ul>{fallback_rows}</ul>
+        </section>
+      </aside>
+    </section>
+  </main>
+  <script>
+    const stage = document.getElementById("knowledgeTreeStage");
+    const modeButtons = document.querySelectorAll("[data-tree-mode-button]");
+    modeButtons.forEach(button => {{
+      button.addEventListener("click", () => {{
+        const mode = button.getAttribute("data-tree-mode-button");
+        stage.setAttribute("data-tree-mode", mode);
+        modeButtons.forEach(item => {{
+          item.setAttribute("aria-selected", String(item === button));
+        }});
+      }});
+    }});
+  </script>
+</body>
+</html>
+"""
+
+
+def write_soundji_demo_html(
+    path: Path,
+    sample_stream: dict[str, Any],
+    timeline: dict[str, Any],
+    fallback: dict[str, Any],
+) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        build_soundji_demo_html(sample_stream, timeline, fallback),
+        encoding="utf-8",
+    )
+    return path
 
 
 def artifact_manifest(paths: dict[str, Path]) -> str:

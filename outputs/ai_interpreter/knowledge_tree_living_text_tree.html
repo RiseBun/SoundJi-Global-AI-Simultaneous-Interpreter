@@ -9,18 +9,21 @@
     body { margin: 0; min-height: 100vh; background: #05070b; color: #f8fbff; font-family: Arial, "Microsoft YaHei UI", sans-serif; overflow: hidden; }
     .stage { position: relative; width: 100vw; height: 100vh; background: linear-gradient(90deg, #020308 0 15%, #111827 15% 85%, #020308 85% 100%); }
     .video { position: absolute; left: 15%; right: 15%; top: 0; bottom: 0; display: grid; place-items: center; color: rgba(255,255,255,.42); border-left: 1px solid rgba(255,255,255,.08); border-right: 1px solid rgba(255,255,255,.08); text-align: center; }
-    .living-tree { position: absolute; left: 10px; bottom: 72px; width: calc(15vw - 16px); min-width: 150px; max-width: 600px; height: 78vh; border-right: 1px solid rgba(180,220,255,.68); cursor: grab; overflow: hidden; background: transparent; }
-    .resize-handle { position: absolute; top: 0; right: -5px; width: 10px; height: 100%; cursor: ew-resize; z-index: 2; }
-    .resize-handle::after { content: ""; position: absolute; top: 0; bottom: 0; left: 4px; width: 1px; background: rgba(180,220,255,.8); }
-    svg { width: 100%; height: 100%; display: block; filter: drop-shadow(0 2px 8px rgba(0,0,0,.95)); }
-    .trunk, .branch-line, .twig-line { fill: none; stroke: rgba(230,244,255,.78); stroke-width: 2.5; stroke-linecap: round; }
+    .living-tree { position: absolute; left: 10px; bottom: 72px; width: calc(15vw - 16px); min-width: 150px; max-width: 600px; height: 78vh; border-right: 2px solid rgba(205,232,255,.86); cursor: grab; overflow: visible; background: transparent; }
+    .resize-handle { position: absolute; top: 0; right: -8px; width: 16px; height: 100%; cursor: ew-resize; z-index: 4; }
+    .resize-handle::after { content: ""; position: absolute; top: 0; bottom: 0; left: 7px; width: 2px; background: rgba(222,241,255,.96); box-shadow: 0 0 12px rgba(150,205,255,.45); }
+    .resize-handle::before { content: "resize"; position: absolute; right: -70px; bottom: 54px; padding: 10px 12px; border-radius: 9px; background: rgba(82,82,82,.92); color: #fff; font: 16px/1 Arial, "Microsoft YaHei UI", sans-serif; box-shadow: 0 8px 20px rgba(0,0,0,.32); }
+    svg { width: 100%; height: 100%; display: block; overflow: visible; filter: drop-shadow(0 2px 8px rgba(0,0,0,.95)); }
+    .root-line, .soil-line, .trunk, .branch-line, .twig-line { fill: none; stroke: rgba(230,244,255,.78); stroke-width: 2.5; stroke-linecap: round; }
+    .root-line, .soil-line { stroke-width: 2; stroke: rgba(222,241,255,.62); }
     .twig-line { stroke-width: 1.5; }
-    .branch-label, .leaf-label, .toggle-label, .root-label { fill: #f8fbff; font-family: Consolas, "Cascadia Mono", monospace; }
+    .branch-label, .leaf-label, .toggle-label, .root-label, .soil-label { fill: #f8fbff; font-family: Consolas, "Cascadia Mono", monospace; }
     .branch-label { font-size: 12px; font-weight: 700; }
     .leaf-label { font-size: 11px; fill: #cfe7ff; }
     .toggle-label { font-size: 11px; fill: #9fd1ff; cursor: pointer; }
-    .branch-label, .leaf-label, .root-label { pointer-events: none; }
+    .branch-label, .leaf-label, .root-label, .soil-label { pointer-events: none; }
     .root-label { font-size: 12px; fill: #eaf6ff; font-weight: 700; }
+    .soil-label { font-size: 11px; fill: #eaf6ff; font-weight: 700; }
     .seed-dot, .leaf-dot { fill: #f8fbff; }
     .collapsed .leaf-group { display: none; }
     .subtitle { position: absolute; left: 20%; right: 20%; bottom: 44px; background: rgba(0,0,0,.48); border: 1px solid rgba(255,255,255,.14); padding: 12px 18px; text-align: center; }
@@ -58,8 +61,11 @@
       const branchX = 150 + widthRatio * 70;
       const labelChars = Math.max(8, Math.min(34, Math.floor(panelWidth / 10)));
       const leafChars = Math.max(8, Math.min(30, Math.floor(panelWidth / 11)));
-      let html = `<path class="trunk" d="M 38 780 C 26 620, 54 310, 42 40" />`;
-      html += textBlock(52, 812, data.root_title, "root-label", labelChars);
+      let html = `<path class="root-line" d="M 6 802 C 38 784, 90 784, 130 802" />`;
+      html += `<path class="soil-line" d="M 10 818 C 54 804, 136 804, 232 820" />`;
+      html += `<path class="soil-line" d="M 20 836 C 82 820, 154 824, 238 838" />`;
+      html += `<path class="trunk" d="M 38 780 C 26 620, 54 310, 42 40" />`;
+      html += textBlock(52, 828, data.root_title, "soil-label", labelChars);
       data.branches.forEach((branch, index) => {
         const y = 700 - index * 126;
         const activeUpdates = branch.updates.filter(update => data.updates.slice(0, step).includes(update.update_id));

@@ -19,6 +19,7 @@ README
 -> scripts/run_p1_acceptance.py
 -> scripts/run_p2_optional_acceptance.py
 -> scripts/run_soundji_acceptance.py
+-> outputs/ai_interpreter/soundji_demo.html
 -> outputs/ai_interpreter/transcript.md/json
 -> outputs/ai_interpreter/revision_demo.html
 -> outputs/ai_interpreter/review_study_guide.json
@@ -214,10 +215,11 @@ Summary: finals=10, glossary_entries=10, term_hits=13, knowledge_branches=5, kno
 
 | 输出 | 说明 |
 |---|---|
+| `outputs/ai_interpreter/soundji_demo.html` | 统一成果入口，集中展示双语 timeline、主知识树、fallback、导出和 optional artifacts |
 | `outputs/ai_interpreter/transcript.md` | Markdown 双语 transcript |
 | `outputs/ai_interpreter/transcript.json` | JSON 双语 transcript |
-| `outputs/ai_interpreter/floating_knowledge_tree_demo.html` | 可拖动白字知识树测试页，模拟全屏视频左右黑框中的自下往上生长效果 |
-| `outputs/ai_interpreter/floating_real_text_tree_demo.html` | 真树形文字知识树测试页，使用树干、枝干和叶节点表达知识增长 |
+| `outputs/ai_interpreter/knowledge_tree_growing_code_tree.html` | 主知识树展示页，用代码树形式模拟知识结构随 final 字幕增长 |
+| `outputs/ai_interpreter/knowledge_tree_living_text_tree.html` | 可选浮层/真树式知识树视图，用于黑框浮层实验，不作为主入口 |
 | `outputs/ai_interpreter/revision_demo.html` | P2 demo-only 回修样例，展示 before/after/reason |
 | `outputs/ai_interpreter/review_study_guide.json` | P2 deterministic study guide，包含 summary、learning points、open questions 和 source refs |
 | `outputs/ai_interpreter/p2_optional_manifest.json` | P2 optional artifact manifest，标注 demo-only 和非主链路边界 |
@@ -239,10 +241,11 @@ Summary: finals=10, glossary_entries=10, term_hits=13, knowledge_branches=5, kno
 | `scripts/run_p1_acceptance.py` | P1 UI / adapter / signal 验收入口 |
 | `scripts/run_p2_optional_acceptance.py` | P2 optional demo artifact 验收入口 |
 | `scripts/run_soundji_acceptance.py` | P1 + P2 optional + full pytest 的统一本地验收入口 |
+| `outputs/ai_interpreter/soundji_demo.html` | 统一成果入口，集中查看主 timeline、主知识树和 optional artifact 边界 |
 | `outputs/ai_interpreter/transcript.md` | Markdown 输出，包含 timeline、Knowledge Tree 架构图、生长树和增长快照 |
 | `outputs/ai_interpreter/transcript.json` | JSON 输出，包含 timeline、knowledge_tree 和 growth_snapshots |
-| `outputs/ai_interpreter/floating_knowledge_tree_demo.html` | 浮动知识树交互测试页，可拖动、可播放增长步骤 |
-| `outputs/ai_interpreter/floating_real_text_tree_demo.html` | 真树形文字树交互测试页，可拖动、可播放树干分枝增长 |
+| `outputs/ai_interpreter/knowledge_tree_growing_code_tree.html` | 主知识树交互页，可播放增长步骤 |
+| `outputs/ai_interpreter/knowledge_tree_living_text_tree.html` | 可选浮层/真树式知识树视图，不作为主产品闭环入口 |
 | `outputs/ai_interpreter/revision_demo.html` | P2 回修 demo artifact，不进入主 timeline |
 | `outputs/ai_interpreter/review_study_guide.json` | P2 Review Agent mock artifact，不接真实 LLM |
 | `outputs/ai_interpreter/p2_optional_manifest.json` | P2 optional artifacts 清单和边界说明 |
@@ -256,13 +259,13 @@ Summary: finals=10, glossary_entries=10, term_hits=13, knowledge_branches=5, kno
 3. 阅读 `docs/ai_interpreter/02_architecture_design.md`，理解模块边界和 mock/real 替换方式。
 4. 阅读 `docs/ai_interpreter/03_implementation_design.md`，理解对象、事件、状态、验收样例和 72 小时 MVP 裁剪。
 5. 运行 `scripts/run_soundji_acceptance.py` 做完整本地验收。
-6. 查看 `outputs/ai_interpreter/transcript.md`、`outputs/ai_interpreter/transcript.json`、`outputs/ai_interpreter/revision_demo.html`、`outputs/ai_interpreter/review_study_guide.json` 和 `outputs/ai_interpreter/p2_optional_manifest.json`。
+6. 先查看 `outputs/ai_interpreter/soundji_demo.html`，再按需打开 transcript、revision demo、study guide 和 manifest。
 7. 若继续开发，优先做真实 ASR/Translation/LLM 的配置门控和 adapter 验证，不直接承诺生产同传。
 
 可直接发给队友的话术：
 
 ```text
-这是 SoundJi AI 同声传译助手的 P0/P1/P2 optional mock 交接包，不是生产应用。请先读 README.md，再读 docs/ai_interpreter/01_technical_proposal.md、02_architecture_design.md、03_implementation_design.md；然后运行 scripts/run_soundji_acceptance.py，最后查看 outputs/ai_interpreter/transcript.md / transcript.json / revision_demo.html / review_study_guide.json / p2_optional_manifest.json。当前证明的是"术语可控、状态可追踪、知识结构可沉淀、证据可复盘"的 mock 闭环；不证明真实 ASR/LLM、真实 Review Agent、真实自动回修或会议平台接入。
+这是 SoundJi AI 同声传译助手的 P0/P1/P2 optional mock 交接包，不是生产应用。请先读 README.md，再读 docs/ai_interpreter/01_technical_proposal.md、02_architecture_design.md、03_implementation_design.md；然后运行 scripts/run_soundji_acceptance.py，最后优先查看 outputs/ai_interpreter/soundji_demo.html。当前证明的是"术语可控、状态可追踪、知识结构可沉淀、证据可复盘"的 mock 闭环；不证明真实 ASR/LLM、真实 Review Agent、真实自动回修或会议平台接入。浮层/真树式知识树只是 optional 视图，不是主成果入口。
 ```
 
 ## 8. Day 1 PR 描述模板
@@ -356,10 +359,11 @@ I: 推断或项目内判断
 │   └── run_soundji_acceptance.py
 ├── outputs/
 │   └── ai_interpreter/
+│       ├── soundji_demo.html
 │       ├── transcript.md
 │       ├── transcript.json
-│       ├── floating_knowledge_tree_demo.html
-│       ├── floating_real_text_tree_demo.html
+│       ├── knowledge_tree_growing_code_tree.html
+│       ├── knowledge_tree_living_text_tree.html
 │       ├── revision_demo.html
 │       ├── review_study_guide.json
 │       └── p2_optional_manifest.json

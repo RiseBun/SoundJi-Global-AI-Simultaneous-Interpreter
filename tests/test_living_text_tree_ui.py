@@ -26,6 +26,10 @@ def test_living_text_tree_anchor_growth_collapse_and_resize(tmp_path: Path):
         assert panel_box["x"] < 1280 * 0.15
 
         assert page.locator(".leaf-group").count() == 0
+        assert page.locator(".root-line").count() == 1
+        assert page.locator(".soil-line").count() == 2
+        assert page.locator(".soil-label").count() >= 1
+        assert page.locator("#resizeHandle").count() == 1
         page.locator("#nextBtn").click()
         assert page.locator(".leaf-group").count() == 1
         assert "知识树更新" in page.locator("#subtitle").inner_text()

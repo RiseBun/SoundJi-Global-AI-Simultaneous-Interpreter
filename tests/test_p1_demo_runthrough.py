@@ -12,6 +12,20 @@ def test_p1_demo_runthrough_covers_timeline_knowledge_tree_export_and_fallback(t
         browser = p.chromium.launch(headless=True)
         page = browser.new_page(viewport={"width": 1366, "height": 900})
 
+        page.goto(paths["soundji_demo"].as_uri())
+        assert page.locator('[data-primary-artifact="timeline_review"]').count() == 1
+        assert page.locator('[data-primary-artifact="knowledge_tree_growing"]').count() == 1
+        assert page.locator('[data-optional-artifact="knowledge_tree_living"]').count() == 1
+        assert page.locator('[data-artifact-role="primary"]').count() == 2
+        assert page.locator('[data-artifact-role="optional"]').count() >= 3
+        stage = page.locator("#knowledgeTreeStage")
+        timeline_preview = page.locator('[data-primary-artifact="timeline_review"]')
+        assert stage.bounding_box()["y"] < timeline_preview.bounding_box()["y"]
+        assert stage.get_attribute("data-tree-mode") == "growing"
+        page.locator("#organicStructureMode").click()
+        assert stage.get_attribute("data-tree-mode") == "living"
+        assert page.locator("#organicStructureMode").get_attribute("aria-selected") == "true"
+
         page.goto(paths["timeline_review"].as_uri())
         assert page.locator(".timeline-row").count() == 10
         assert page.locator(".term-hit").count() == 13
